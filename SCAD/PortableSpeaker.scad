@@ -42,7 +42,7 @@ difference(){
 translate([0-explode,0,-Thick])rotate([0,0,90])cube([outerDepth,Thick,outerHeight]);
 
 //left side
-//translate([innerWidth+Thick+explode,0,-Thick])rotate([0,0,90])cube([outerDepth,Thick,outerHeight]);
+translate([innerWidth+Thick+explode,0,-Thick])rotate([0,0,90])cube([outerDepth,Thick,outerHeight]);
 
 //bottom
 translate([0,0,-explode])rotate([-90,0,0])cube([innerWidth,Thick,outerDepth]);
@@ -179,8 +179,9 @@ module neutrikNCJ9FIS(){
     cylinder(d=23.5,h=7,$fn=15);
     cylinder(d=7,h=20,$fn=10, center=true);
   }
-  translate([0,0,7])cylinder(d=30,h=30,$fn=15);
+  translate([0,0,7])cylinder(d=37,h=30,$fn=15);
 }
+  color("lightgreen")translate([-23.4/2,-39.48/2,-3])linear_extrude(1)scale([0.25,0.25,0.25])import("../DXF/XLR_leds.dxf");
 }
 
 module RCA(){
@@ -195,7 +196,7 @@ module RCA(){
 
 module oled1_3(){ //https://www.aliexpress.com/item/1PCS-1-3-OLED-module-bule-color-128X64-1-3-inch-OLED-LCD-LED-Display-Module/32814239906.html
   color("Darkblue")cube([36,34,1], true);
-  color("blue")translate([0,0,1])cube([30,16,1],true);
+  color("blue")translate([0,0,1])cube([32,18,1],true);
 }
 
 module power27V(){
@@ -208,8 +209,8 @@ module liion(){
 }
 
 module bluetoothSign(){
-  btSize=10; //mm
-  btdiam=1.5; //mm
+  btSize=7.5; //mm
+  btdiam=1.2; //mm
   hull(){
     translate([-btSize/2,btSize/2,0])cylinder(d=btdiam,h=10,$fn=10);
     translate([btSize/2,-btSize/2,0])cylinder(d=btdiam,h=10,$fn=10);
@@ -231,9 +232,8 @@ module powerSwitch(){
 
 
 module wheel(){
-  //Adam Hall Hardware 37600 S
-  color("lightgray")rotate([0,90,0])cylinder(d=48, h=25, center=true, $fn=30);
-  // better wheels is Adam Hall 3783
+  //wheels is Adam Hall 3783
+  color("lightgray")rotate([0,90,0])cylinder(d=58, h=15, center=true, $fn=30);
 }
 
 
