@@ -1,8 +1,9 @@
+// 2X XH-M544
 explode=0;
 innerHeight=430;
 innerWidth=310;
 innerDepth=254;
-Thick=22;
+Thick=19;
 electronicHeight=48;
 
 $fn=60;
@@ -11,9 +12,10 @@ outerHeight=Thick+innerHeight+Thick+electronicHeight+Thick;
 echo("outerDepth", outerDepth);
 echo("outerHeight", outerHeight);
 
-// plates total (310mm): 300+80+80+417+120+80+300+430
+// plates total (310mm): 300+80+80+417+120+80+300+430 + 535+535
 // 30+8+42+12 = 92cm
 // 8+8+30+43 = 89cm
+// 535+535 = 107cm
 
 union()color("Gray"){
 //front deck
@@ -165,12 +167,12 @@ module electronicPanel(){
   translate([70,0,3])powerSwitch();
 }
 
-module knob28x12(){ //https://www.aliexpress.com/item/Rotary-Encoder-Potentiometer-Knob-Volume-Knob-Amplifier-Knob-32x17mm/32950467520.html
+module knob28x12(){ //https://www.aliexpress.com/item/D-Axis-Volume-Knob-Potentiometer-Knob-Encoder-knob-28-x-12MM/32812148438.html
   color("lightGray")cylinder(d=28, h=12,$fn=20);
 }
 
-module knob17x14(){ //https://www.aliexpress.com/item/5pcs-lot-LXN17x14-Mini-Aluminum-Alloy-Knobs-Cap-17x14mm-Mounting-6mm-Black-For-Rotary-potentiometer/32843175222.html
-  color("Gray")cylinder(d=17, h=14,$fn=15);
+module knob17x14(){ //https://www.aliexpress.com/item/17x10mm-Aluminum-Alloy-Potentiometer-Knob-Pack-of-2/32922183298.html
+  color("Gray")cylinder(d=17, h=10,$fn=15);
 }
 
 module neutrikNCJ9FIS(){
