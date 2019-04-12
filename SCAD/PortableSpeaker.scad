@@ -117,6 +117,7 @@ module Tweeter(){
 }
 
 module AdamHall3427StrapHandle(){
+  //https://www.thomann.de/intl/adam_hall_3427_strap_handle_black.htm
   size=280;
   color("Black")union(){
     translate([-size/2,-34/2,0])cube([50,34,10]);
@@ -126,6 +127,7 @@ module AdamHall3427StrapHandle(){
 }
 
 module AdamHall3471Handle(){
+  //https://www.thomann.de/intl/adam_hall_3471.htm
   color("Black")difference(){
     union(){
       cube([218,6,60],true);
