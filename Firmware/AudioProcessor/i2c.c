@@ -72,11 +72,3 @@ uint8_t I2CReadByte(uint8_t ack)
 
     return TWDR;
 }
-
-uint8_t I2CFindDevice(uint8_t addr)
-{
-    uint8_t ret = I2CStart(addr) & 0xF8;
-    I2CStop();
-
-    return ret & 0x18;
-}

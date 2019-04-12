@@ -1,4 +1,3 @@
-//#include <Wire.h>
 #include "i2c.c"
 /***********
  * SubAddress:
@@ -12,512 +11,118 @@
  * 7 - Speaker L
  */
 
-// I2C address
+// TDA7440 address
 #define I2C_ADDR            0b10001000
 
-// I2C function selection
-#define INPUT_SELECT        0x00
-#define INPUT_GAIN          0x01
-#define PREAMP              0x02
-#define BASS                0x03
-#define TREBLE              0x05
-#define VOLUME_RIGHT        0x06
-#define VOLUME_LEFT         0x07
+// TDA7440 subaddress (function)
+#define INPUT_SELECT		0x00 // 4 inputs
+#define INPUT_GAIN			0x01 // 2dB steps [0-15]=[0-30] (0dB to +30dB)
+#define VOLUME				0x02 // 1dB steps [0-40]=[0-40] (0dB to -40dB) or MUTE
+#define BASS				0x03
+#define TREBLE				0x05
+#define SPEAKER_RIGHT		0x06 // for Balance - not using as we input mono (only for muting).
+#define SPEAKER_LEFT		0x07 // for Balance - not using as we input mono (only for muting).
 
-#define SPEAKER_MUTE        0b01111111
+// TDA7440 function values
+#define INPUT_1				0x03
+#define INPUT_2				0x02
+#define INPUT_3				0x01
+#define INPUT_4				0x00
 
-// I2C autoincrement flag
-#define AUTO_INC            0x10
+#define VOLUME_MUTE			0b01111111
+
+
+#define SPEAKER_MUTE		0b01111111
+#define SPEAKER_UNMUTE		0b00000000
+
+// TDA7440 autoincrement flag
+#define AUTO_INC			0x10
 
 void setup() {
-  Serial.begin(115200);
-  //Wire.begin(); // join i2c bus (address optional for master)
-  I2CInit();
-  //Wire.setClock(10000);
-}
+	Serial.begin(115200);
+	I2CInit();
+	delay(2);
+	I2CStart(I2C_ADDR);
+	I2CWriteByte(VOLUME);
+	I2CWriteByte(VOLUME_MUTE); // direct dB representation (0-40)
+	I2CStop();  
+	delay(2);
+	I2CStart(I2C_ADDR);
+	I2CWriteByte(SPEAKER_RIGHT | AUTO_INC);
+	I2CWriteByte(SPEAKER_UNMUTE); // right
+	I2CWriteByte(SPEAKER_UNMUTE); // left
+	I2CStop();      
+	delay(2);
 
-byte val = 0;
+	// smooth volume up to 50%
+	for(byte i=0;i<20;i++){
+		I2CStart(I2C_ADDR);
+		I2CWriteByte(VOLUME);
+		I2CWriteByte(i); // direct dB representation (0-40)
+		I2CStop();      
+		delay(100);
+	}
+}
 
 void loop() {
-  //while (Serial.available() > 0) {
-  //  int subaddr = Serial.parseInt();
-  //  int data = Serial.parseInt();
+	while (Serial.available() > 0) {
+		int subaddr = Serial.parseInt();
+		int data = Serial.parseInt();
 
-    // look for the newline. That's the end of your sentence:
-   // if (Serial.read() == '\n') {
-
-      // print the three numbers in one string as hexadecimal:
-//      Serial.print("subaddr: ");Serial.println(subaddr, HEX);
-//      Serial.print("data: ");Serial.println(data, HEX);
-//      Serial.println();
-    I2CStart(I2C_ADDR);
-    I2CWriteByte(VOLUME_RIGHT | AUTO_INC);
-    I2CWriteByte(0);
-    I2CWriteByte(0);
-    I2CStop();      //Wire.beginTransmission(I2C_ADDR); // tda7440
-      //Wire.write(VOLUME_RIGHT | AUTO_INC);       // subaddress
-      //Wire.write(0);             // data
-      //Wire.write(0);             // data
-      //Wire.endTransmission();
-      delay(2);
-    I2CStart(I2C_ADDR);
-    I2CWriteByte(PREAMP);
-    I2CWriteByte(0);
-    I2CStop();      
-    //Wire.beginTransmission(I2C_ADDR); // tda7440
-      //Wire.beginTransmission(I2C_ADDR); // tda7440
-      //Wire.write(PREAMP);       // subaddress
-      //Wire.write(0);             // data
-      //Wire.endTransmission();
-      delay(2);
-/*
-      Wire.beginTransmission(0x88); // tda7440
-      Wire.write(byte(subaddr));       // subaddress
-      Wire.write(byte(data));             // data
-      Wire.endTransmission();
-*/
-//    }
-//  }
-  
-//  delay(500);
-/*
-	delay(5000);
-	sendSoftI2C_IN2();
-	delay(5000);
-	sendSoftI2C_IN1();
-*/
+		// look for the newline. That's the end of sentence:
+		if (Serial.read() == '\n') {
+			switch (subaddr) {
+				case INPUT_SELECT: 
+					Serial.print("INPUT: "); Serial.println(data);
+					I2CStart(I2C_ADDR);
+					I2CWriteByte(INPUT_SELECT);
+					I2CWriteByte(byte(data));
+					I2CStop();      
+					break;
+				case INPUT_GAIN: 
+					Serial.print("INPUT GAIN (dB): "); Serial.println(data);
+					I2CStart(I2C_ADDR);
+					I2CWriteByte(INPUT_GAIN);
+					I2CWriteByte(byte(data/2));
+					I2CStop();      
+					break;
+				case VOLUME: 
+					Serial.print("VOLUME (dB): "); Serial.println(data);
+					I2CStart(I2C_ADDR);
+					I2CWriteByte(VOLUME);
+					I2CWriteByte(byte(data));
+					I2CStop();      
+					break;
+				case BASS: 
+					Serial.print("BASS (dB): "); Serial.println(data);
+					I2CStart(I2C_ADDR);
+					I2CWriteByte(BASS);
+					I2CWriteByte(convert_dB2byte(data));
+					I2CStop();      
+					break;
+				case TREBLE: 
+					Serial.print("TREBLE (dB): "); Serial.println(data);
+					I2CStart(I2C_ADDR);
+					I2CWriteByte(TREBLE);
+					I2CWriteByte(convert_dB2byte(data));
+					I2CStop();      
+					break;
+				default: // mute/unmute speakers
+					I2CStart(I2C_ADDR);
+					I2CWriteByte(SPEAKER_RIGHT | AUTO_INC);
+					I2CWriteByte((data==0 ? SPEAKER_MUTE : SPEAKER_UNMUTE)); // right
+					I2CWriteByte((data==0 ? SPEAKER_MUTE : SPEAKER_UNMUTE)); // left
+					I2CStop();      
+			}
+			Serial.println();
+		}
+	}
 }
 
-
-// 100khz = 10us period
-// 400khz = 2.5us period
-#define period 12	// period (less than 100khz)
-#define qp period/4		// quarter of the period
-#define SCL A5
-#define SDA A4
-
-void sendSoftI2C_IN2(){
-	// reset pins
-	bitClear(DDRC, SCL);
-	bitClear(DDRC, SDA);
-	bitClear(PORTC, SCL);
-	bitClear(PORTC, SDA);
-	delayMicroseconds(period*10); 
-	// send start condition
-	bitSet(DDRC, SDA); // set SDA low
-	delayMicroseconds(qp*2); 
-	
-	// chip address (0b10001000)
-	//send bit 7
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 6
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 5
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 4
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 3
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 2
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 1
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 0
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//ACK
-	bitSet(DDRC, SCL); // set SCL low
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-
-	// sub address INPUT (0b11100000)
-	//send bit 7
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 6
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 5
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 4
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 3
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 2
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 1
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 0
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//ACK
-	bitSet(DDRC, SCL); // set SCL low
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	
-	// data IN2 (0b11111110)
-	//send bit 7
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 6
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 5
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 	
-	//send bit 4
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 3
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 2
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 1
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 0
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//ACK
-	bitSet(DDRC, SCL); // set SCL low
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//STOP
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // set SDA low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
-}
-
-void sendSoftI2C_IN1(){
-	// reset pins
-	bitClear(DDRC, SCL);
-	bitClear(DDRC, SDA);
-	bitClear(PORTC, SCL);
-	bitClear(PORTC, SDA);
-	delayMicroseconds(period*10); 
-	// send start condition
-	bitSet(DDRC, SDA); // set SDA low
-	delayMicroseconds(qp*2); 
-	
-	// chip address (0b10001000)
-	//send bit 7
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 6
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 5
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 4
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 3
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 2
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 1
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 0
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//ACK
-	bitSet(DDRC, SCL); // set SCL low
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-
-	// sub address INPUT (0b11100000)
-	//send bit 7
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 6
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 5
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 4
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 3
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 2
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 1
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 0
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // (0)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//ACK
-	bitSet(DDRC, SCL); // set SCL low
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	
-	// data IN1 (0b11111111)
-	//send bit 7
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 6
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 5
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 	
-	//send bit 4
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 3
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 2
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 1
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//send bit 0
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // (1)
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//ACK
-	bitSet(DDRC, SCL); // set SCL low
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp*2); 
-	//STOP
-	bitSet(DDRC, SCL); // set SCL low
-	delayMicroseconds(qp); 
-	bitSet(DDRC, SDA); // set SDA low
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SCL); // set SCL high
-	delayMicroseconds(qp); 
-	bitClear(DDRC, SDA); // release SDA
-	delayMicroseconds(qp*2); 
+// input: -14 to +14 (in 2dB steps eg -14,-12,-10...)
+// output: 0 to 15 (see datasheet)
+byte convert_dB2byte(int dB){
+	byte val;
+	if(dB<0){val=(14+dB)/2;}else{val=(14-dB)/2+8;}
+	return val;
 }
