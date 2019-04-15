@@ -1,5 +1,7 @@
 // 2X XH-M544
 explode=0;
+
+// V=33L (phase inverter size is 70 mm)
 innerHeight=430;
 innerWidth=310;
 innerDepth=254;
@@ -13,8 +15,8 @@ echo("outerDepth", outerDepth);
 echo("outerHeight", outerHeight);
 
 // plates total (310mm): 300+80+80+417+120+80+300+430 + 535+535
-// 30+8+42+12 = 92cm
-// 8+8+30+43 = 89cm
+// 41.7+30+8+8+6.7+12 = 106.4cm
+// 30+43 = 73cm
 // 535+535 = 107cm
 
 union()color("Gray"){
@@ -77,7 +79,7 @@ translate([Thick+28.5,0,innerHeight+Thick+explode*1.5])rotate([0,0,90])cube([120
 //left electronic wall
 translate([innerWidth-28.5,0,innerHeight+Thick+explode*1.5])rotate([0,0,90])cube([120,Thick,electronicHeight]);
 //back electronic wall
-translate([0,120,innerHeight+electronicHeight+Thick-80+explode*1.5])cube([innerWidth,Thick,80]);
+translate([0,120,innerHeight+electronicHeight+Thick-67+explode*1.5])cube([innerWidth,Thick,67]);
 
 }
 
