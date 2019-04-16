@@ -777,13 +777,13 @@ E0A
 Text Label 3800 3550 0    50   ~ 0
 E0B
 Text Label 3800 3650 0    50   ~ 0
-E0C
+E0S
 Text Label 3800 4200 0    50   ~ 0
 E1A
 Text Label 3800 4300 0    50   ~ 0
 E1B
 Text Label 3800 4400 0    50   ~ 0
-E1C
+E1S
 $Comp
 L Connector_Generic:Conn_01x02 J16
 U 1 1 5CBC58AF

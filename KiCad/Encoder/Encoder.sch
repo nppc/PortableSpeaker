@@ -1,0 +1,150 @@
+EESchema Schematic File Version 4
+LIBS:Encoder-cache
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_01x04 J1
+U 1 1 5CBC5D95
+P 6400 3450
+F 0 "J1" H 6319 3025 50  0000 C CNN
+F 1 "Conn_01x04" H 6319 3116 50  0000 C CNN
+F 2 "KiCadCustomLibs:Conn_1x04_2.54mm" H 6400 3450 50  0001 C CNN
+F 3 "~" H 6400 3450 50  0001 C CNN
+	1    6400 3450
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	5200 3450 5200 3600
+Wire Wire Line
+	5200 3600 5550 3600
+Wire Wire Line
+	5850 3600 5850 3350
+Wire Wire Line
+	5850 3350 5800 3350
+$Comp
+L power:GND #PWR0101
+U 1 1 5CBC5E5F
+P 6200 3550
+F 0 "#PWR0101" H 6200 3300 50  0001 C CNN
+F 1 "GND" H 6205 3377 50  0000 C CNN
+F 2 "" H 6200 3550 50  0001 C CNN
+F 3 "" H 6200 3550 50  0001 C CNN
+	1    6200 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0102
+U 1 1 5CBC5E75
+P 5550 3600
+F 0 "#PWR0102" H 5550 3350 50  0001 C CNN
+F 1 "GND" H 5555 3427 50  0000 C CNN
+F 2 "" H 5550 3600 50  0001 C CNN
+F 3 "" H 5550 3600 50  0001 C CNN
+	1    5550 3600
+	1    0    0    -1  
+$EndComp
+Connection ~ 5550 3600
+Wire Wire Line
+	5550 3600 5850 3600
+$Comp
+L Device:Rotary_Encoder_Switch SW1
+U 1 1 5CBC81D0
+P 5500 3350
+F 0 "SW1" H 5500 2983 50  0000 C CNN
+F 1 "Rotary_Encoder_Switch" H 5500 3074 50  0000 C CNN
+F 2 "KiCadCustomLibs:ROTARY-ENCODER" H 5350 3510 50  0001 C CNN
+F 3 "~" H 5500 3610 50  0001 C CNN
+	1    5500 3350
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5800 3450 6000 3450
+Wire Wire Line
+	6000 3450 6000 3250
+Wire Wire Line
+	6000 3250 6200 3250
+Wire Wire Line
+	5800 3250 5900 3250
+Wire Wire Line
+	5900 3250 5900 3350
+Wire Wire Line
+	5900 3350 6050 3350
+Wire Wire Line
+	5200 3250 5200 3150
+Wire Wire Line
+	5200 3100 6100 3100
+Wire Wire Line
+	6100 3100 6100 3450
+Wire Wire Line
+	6100 3450 6200 3450
+$Comp
+L Device:C_Small C1
+U 1 1 5CBCB27E
+P 4700 3250
+F 0 "C1" H 4792 3296 50  0000 L CNN
+F 1 "C_Small" H 4792 3205 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0603" H 4700 3250 50  0001 C CNN
+F 3 "~" H 4700 3250 50  0001 C CNN
+	1    4700 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C2
+U 1 1 5CBCB374
+P 5800 3900
+F 0 "C2" H 5892 3946 50  0000 L CNN
+F 1 "C_Small" H 5892 3855 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0603" H 5800 3900 50  0001 C CNN
+F 3 "~" H 5800 3900 50  0001 C CNN
+	1    5800 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C3
+U 1 1 5CBCB3C6
+P 6050 3900
+F 0 "C3" H 6142 3946 50  0000 L CNN
+F 1 "C_Small" H 6142 3855 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0603" H 6050 3900 50  0001 C CNN
+F 3 "~" H 6050 3900 50  0001 C CNN
+	1    6050 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6050 3800 6050 3350
+Connection ~ 6050 3350
+Wire Wire Line
+	6050 3350 6200 3350
+Wire Wire Line
+	5800 3800 5800 3450
+Connection ~ 5800 3450
+Wire Wire Line
+	4700 3150 5200 3150
+Connection ~ 5200 3150
+Wire Wire Line
+	5200 3150 5200 3100
+Wire Wire Line
+	4700 3350 4700 3600
+Wire Wire Line
+	4700 3600 5200 3600
+Connection ~ 5200 3600
+Wire Wire Line
+	6050 4000 5800 4000
+Wire Wire Line
+	5800 4000 5200 4000
+Wire Wire Line
+	5200 4000 5200 3600
+Connection ~ 5800 4000
+$EndSCHEMATC
