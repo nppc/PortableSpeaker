@@ -14,31 +14,55 @@ outerHeight=Thick+innerHeight+Thick+electronicHeight+Thick;
 echo("outerDepth", outerDepth);
 echo("outerHeight", outerHeight);
 
+/*
 // plates total (310mm): 300+80+80+417+120+80+300+430 + 535+535
 // 41.7+30+8+8+6.7+12 = 106.4cm
 // 30+43 = 73cm
-// 535+535 = 107cm
+// 53.5+53.5 = 107cm
+
+1. (310 X 1100): 
+  a.	300 X 310 – 1
+  b.	430 X 310 – 1 
+2. (310 X 1100): (need to cut 1 cm to make it 300 X 1100)
+  a.	535 X 300 – 2 
+3. (310 X 1100):
+  a.	67 X 310 – 1
+  b.	80 X 310 – 2
+  c.	120 X 310 – 1
+  d.	300 X 310 – 1
+  e.	417 X 310 – 1
+*/
+
+//translate([200,0,innerHeight/2])cube([400,10,19], true);
 
 union()color("Gray"){
 //front deck
 difference(){
   translate([0,8,0])cube([innerWidth,Thick,innerHeight]);
+  // Speakers
   translate([110,7,110])rotate([-90,0,0]){
     cylinder(d=202,h=5);
     cylinder(d=180,h=30);
   }
-  translate([90+110,7,190+110])rotate([-90,0,0]){
+  translate([innerWidth - 110,7,innerHeight - 110])rotate([-90,0,0]){
     cylinder(d=202,h=5);
     cylinder(d=180,h=30);
   }
-  translate([50,7,250])rotate([-90,0,0]){
+  // Tweeters
+  translate([50,7,innerHeight/2 + 50])rotate([-90,0,0]){
     cylinder(d=62,h=10,$fn=30);
     cylinder(d=50,h=30,$fn=30);
   }
-  translate([50,7,350])rotate([-90,0,0]){
+  translate([innerWidth-50,7,innerHeight/2 - 50])rotate([-90,0,0]){
     cylinder(d=62,h=10,$fn=30);
     cylinder(d=50,h=30,$fn=30);
   }
+  //Phaseinverter
+  translate([50,7,innerHeight - 55])rotate([-90,0,0]){
+    cylinder(d=70,h=3,$fn=30);
+    cylinder(d=60,h=30,$fn=30);
+  }
+
 }
 
 
@@ -54,7 +78,7 @@ translate([0,0,-explode])rotate([-90,0,0])cube([innerWidth,Thick,outerDepth]);
 //middle
 translate([0,0,innerHeight+Thick+explode])rotate([-90,0,0])cube([innerWidth,Thick,120]);
 
-/*
+
 //top
 translate([0,0,Thick+innerHeight+Thick+electronicHeight+explode*2])rotate([-90,0,0]){
   difference(){
@@ -62,7 +86,7 @@ translate([0,0,Thick+innerHeight+Thick+electronicHeight+explode*2])rotate([-90,0
     translate([innerWidth/2,0,40])cube([215,50,81], true);
   }
 }
-*/
+
 
 //back
 translate([0,outerDepth-Thick+explode,80])cube([innerWidth,Thick,outerHeight-Thick*2-80]);
@@ -83,10 +107,12 @@ translate([0,120,innerHeight+electronicHeight+Thick-67+explode*1.5])cube([innerW
 
 }
 
+
 translate([110,7,110])speaker();
-translate([90+110,7,190+110])speaker();
-translate([50,7,250])Tweeter();
-translate([50,7,350])Tweeter();
+translate([innerWidth - 110,7,innerHeight - 110])speaker();
+translate([50,7,innerHeight/2 + 50])Tweeter();
+translate([innerWidth-50,7,innerHeight/2 - 50])Tweeter();
+
 
 translate([innerWidth/2,outerDepth/2,outerHeight-Thick+explode*3])AdamHall3427StrapHandle();
 translate([innerWidth/2,outerDepth+3+explode*2,outerHeight-395])AdamHall3471Handle();
