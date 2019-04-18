@@ -41,12 +41,12 @@ difference(){
   translate([0,8,0])cube([innerWidth,Thick,innerHeight]);
   // Speakers
   translate([110,7,110])rotate([-90,0,0]){
-    cylinder(d=202,h=5);
-    cylinder(d=180,h=30);
+    cylinder(d=168,h=5);
+    cylinder(d=145,h=30);
   }
   translate([innerWidth - 110,7,innerHeight - 110])rotate([-90,0,0]){
-    cylinder(d=202,h=5);
-    cylinder(d=180,h=30);
+    cylinder(d=168,h=5);
+    cylinder(d=145,h=30);
   }
   // Tweeters
   translate([50,7,innerHeight/2 + 50])rotate([-90,0,0]){
@@ -107,12 +107,12 @@ translate([0,120,innerHeight+electronicHeight+Thick-67+explode*1.5])cube([innerW
 
 }
 
-
+/*
 translate([110,7,110])speaker();
 translate([innerWidth - 110,7,innerHeight - 110])speaker();
 translate([50,7,innerHeight/2 + 50])Tweeter();
 translate([innerWidth-50,7,innerHeight/2 - 50])Tweeter();
-
+*/
 
 translate([innerWidth/2,outerDepth/2,outerHeight-Thick+explode*3])AdamHall3427StrapHandle();
 translate([innerWidth/2,outerDepth+3+explode*2,outerHeight-395])AdamHall3471Handle();
@@ -131,9 +131,9 @@ translate([Thick+innerWidth-10,outerDepth,-19+48/2-18])wheel();
 
 module speaker(){
   rotate([-90,0,0])color([0.2,0.2,0.2])union(){
-    cylinder(d=200,h=5);
-    cylinder(d1=180,d2=100,h=50);
-    translate([0,0,50])cylinder(d=130,h=30);
+    cylinder(d=168,h=5);
+    cylinder(d1=145,d2=100,h=50);
+    translate([0,0,50])cylinder(d=120,h=30);
   }
 }
 
