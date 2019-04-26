@@ -1,5 +1,5 @@
 // 2X XH-M544
-explode=0;
+explode=1;
 
 // V=33L (phase inverter size is 70 mm)
 innerHeight=430;
@@ -50,12 +50,12 @@ difference(){
   }
   // Tweeters
   translate([50,7,innerHeight/2 + 50])rotate([-90,0,0]){
-    cylinder(d=62,h=10,$fn=30);
-    cylinder(d=50,h=30,$fn=30);
+    cylinder(d=48,h=10,$fn=30);
+    cylinder(d=43,h=30,$fn=30);
   }
   translate([innerWidth-50,7,innerHeight/2 - 50])rotate([-90,0,0]){
-    cylinder(d=62,h=10,$fn=30);
-    cylinder(d=50,h=30,$fn=30);
+    cylinder(d=48,h=10,$fn=30);
+    cylinder(d=43,h=30,$fn=30);
   }
   //Phaseinverter
   translate([50,7,innerHeight - 55])rotate([-90,0,0]){
@@ -139,8 +139,8 @@ module speaker(){
 
 module Tweeter(){
   rotate([-90,0,0])color([0.2,0.2,0.2])union(){
-    cylinder(d=60,h=5,$fn=30);
-    cylinder(d1=50,d2=20,h=20,$fn=20);
+    cylinder(d=48,h=5,$fn=30);
+    cylinder(d1=43,d2=20,h=20,$fn=20);
   }
 }
 
