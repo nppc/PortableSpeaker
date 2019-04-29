@@ -1,5 +1,5 @@
 // 2X XH-M544
-explode=1;
+explode=0;
 
 // V=33L (phase inverter size is 70 mm)
 innerHeight=430;
@@ -57,10 +57,14 @@ difference(){
     cylinder(d=48,h=10,$fn=30);
     cylinder(d=43,h=30,$fn=30);
   }
-  //Phaseinverter
+  //Phaseinverter X2
   translate([50,7,innerHeight - 55])rotate([-90,0,0]){
-    cylinder(d=70,h=3,$fn=30);
-    cylinder(d=60,h=30,$fn=30);
+    cylinder(d=80,h=10,$fn=30);
+    cylinder(d=70,h=30,$fn=30);
+  }
+  translate([innerWidth-50,7,55])rotate([-90,0,0]){
+    cylinder(d=80,h=10,$fn=30);
+    cylinder(d=70,h=30,$fn=30);
   }
 
 }
@@ -70,7 +74,7 @@ difference(){
 translate([0-explode,0,-Thick])rotate([0,0,90])cube([outerDepth,Thick,outerHeight]);
 
 //left side
-translate([innerWidth+Thick+explode,0,-Thick])rotate([0,0,90])cube([outerDepth,Thick,outerHeight]);
+//translate([innerWidth+Thick+explode,0,-Thick])rotate([0,0,90])cube([outerDepth,Thick,outerHeight]);
 
 //bottom
 translate([0,0,-explode])rotate([-90,0,0])cube([innerWidth,Thick,outerDepth]);
@@ -93,15 +97,22 @@ translate([0,outerDepth-Thick+explode,80])cube([innerWidth,Thick,outerHeight-Thi
 echo("back",outerHeight-Thick*2-80);
 
 // battery compartment
-translate([0,outerDepth-Thick-80,explode])cube([innerWidth,Thick,80]);
-translate([0,outerDepth-Thick-80,80+Thick+explode*2])rotate([-90,0,0])cube([innerWidth,Thick,80]);
+translate([0,outerDepth-Thick-80+19,explode])cube([innerWidth,Thick,80]);
+translate([0,outerDepth-Thick-80+19,80+Thick+explode*2])rotate([-90,0,0])cube([innerWidth,Thick,80-19]);
+
+translate([explode,outerDepth-80+Thick+explode,explode])cube([Thick,80-19,80]);
+translate([explode*2+Thick,outerDepth-80+Thick+explode,explode])cube([Thick,80-19,80]);
+translate([innerWidth-Thick-explode,outerDepth-80+Thick+explode,explode])cube([Thick,80-19,80]);
+translate([innerWidth-(Thick+explode)*2,outerDepth-80+Thick+explode,explode])cube([Thick,80-19,80]);
+
+
 
 
 
 //right electronic wall
-translate([Thick+28.5,0,innerHeight+Thick+explode*1.5])rotate([0,0,90])cube([120,Thick,electronicHeight]);
+translate([28.5+Thick,0,innerHeight+Thick+explode*1.5])rotate([0,0,90])cube([120,6,electronicHeight]);
 //left electronic wall
-translate([innerWidth-28.5,0,innerHeight+Thick+explode*1.5])rotate([0,0,90])cube([120,Thick,electronicHeight]);
+translate([innerWidth-28.5-Thick+6,0,innerHeight+Thick+explode*1.5])rotate([0,0,90])cube([120,6,electronicHeight]);
 //back electronic wall
 translate([0,120,innerHeight+electronicHeight+Thick-67+explode*1.5])cube([innerWidth,Thick,67]);
 
@@ -117,13 +128,13 @@ translate([innerWidth-50,7,innerHeight/2 - 50])Tweeter();
 translate([innerWidth/2,outerDepth/2,outerHeight-Thick+explode*3])AdamHall3427StrapHandle();
 translate([innerWidth/2,outerDepth+3+explode*2,outerHeight-395])AdamHall3471Handle();
 
-translate([innerWidth/2,50,outerHeight-Thick-35])rotate([45,0,0])electronicPanel();
+translate([innerWidth/2,43,outerHeight-Thick-35])rotate([40,0,0])electronicPanel();
 
-translate([200,175,110])rotate([0,0,90])power27V();
+translate([200,115,0])rotate([0,0,90])power27V();
 
-  for(i=[0:19:110])translate([i+60,240,0])liion();
-  for(i=[0:19:110])translate([i+60,260,0])liion();
-  for(i=[0:19:110])translate([i+60,280,0])liion();
+  for(i=[0:19:110])translate([i+60,250,0])liion();
+  for(i=[0:19:110])translate([i+60,269,0])liion();
+  for(i=[0:19:110])translate([i+60,288,0])liion();
 
 
 translate([-Thick+10,outerDepth,-19+48/2-18])wheel();
