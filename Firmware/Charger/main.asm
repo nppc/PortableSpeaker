@@ -4,7 +4,7 @@
 ; Author : Pavel
 ;
 
-;#define DEBUG
+#define DEBUG
 
 #define	MOVINGAVERAGE ; comment it if not needed
 .EQU	MOVINGAVERAGE_N = 5 ; can be 3, 5 or 7.
@@ -13,7 +13,7 @@
 .include "tn85def.inc"
 
 ; Pins assignment
-;.EQU	PIN_SDA		= PB0	; I2C_SDA
+.EQU	PIN_LED		= PB0	; WS2812B pin
 .EQU	PIN_PWM		= PB1	; PWM to Buck mosfet driver
 ;.EQU	PIN_SCL		= PB2	; I2C_SCL
 .EQU	PIN_Isense	= PB3	; Current measurement (analog signal)
@@ -63,6 +63,10 @@ M_AVERAGE_voltage_TABLE:	.BYTE MOVINGAVERAGE_N * 2 ; Table for running moving av
 M_AVERAGE_current_COUNTER:	.BYTE 1	 ; Counter in the table
 M_AVERAGE_current_TABLE:	.BYTE MOVINGAVERAGE_N * 2 ; Table for running moving average algorithm (max 14 bytes).
 #endif
+; RGB bytes
+byteR:						.BYTE 1
+byteG:						.BYTE 1
+byteB:						.BYTE 1
 
 .CSEG
 .ORG 0
@@ -90,7 +94,7 @@ M_AVERAGE_current_TABLE:	.BYTE MOVINGAVERAGE_N * 2 ; Table for running moving av
 .include "MovAverage.inc"
 .include "math.inc"
 .include "scheduler.inc"
-.include "EEPROM.inc"
+;.include "EEPROM.inc"
 .include "main.inc"
 
 RESET:
@@ -111,12 +115,7 @@ RESET:
 	ldi tmp, low(RAMEND)
 	out SPL,tmp				; Set Stack Pointer to top of RAM
 
-	#ifdef DEBUG
-		sbi DDRB, PIN_PWM
-		sbi PORTB, PIN_PWM
-	#endif
-
-	rcall EEPROM_restoreSettings
+	;rcall EEPROM_restoreSettings
 
 	rcall init_PWM	; Initialize FET controlling with PWM
 	#ifdef MOVINGAVERAGE
@@ -132,6 +131,11 @@ RESET:
 	sbi ADCSRA, ADSC
 	
 	sei
+	
+	#ifdef DEBUG
+		rcall debug_green
+	#endif
+	; set LED color to GREEN
 	
 loop:
 	; wait for ADC complete

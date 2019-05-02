@@ -70,5 +70,3 @@ TMR0_changeVolt_adjust_inc:
 	inc setVolt_tmp
 	out SREG, r_sreg
 	reti
-
-	
