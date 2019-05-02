@@ -94,11 +94,16 @@ byteB:						.BYTE 1
 .include "MovAverage.inc"
 .include "math.inc"
 .include "scheduler.inc"
+.include "ws2812b.inc"
 ;.include "EEPROM.inc"
 .include "main.inc"
 
 RESET:
 	cli
+	sbi DDRB, PB2
+	sbi PORTB, PB2
+	sbi DDRB, PIN_LED
+
 	;initialize constants
 	clr z0
 	clr z1
@@ -133,7 +138,9 @@ RESET:
 	sei
 	
 	#ifdef DEBUG
-		rcall debug_green
+		;rcall debug_green
+		rcall debug_off
+		;rcall debug_yellow
 	#endif
 	; set LED color to GREEN
 	

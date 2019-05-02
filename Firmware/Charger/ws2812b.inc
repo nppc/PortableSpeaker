@@ -11,8 +11,7 @@ loop_G:
 	lsl tmp				; shift bit to C flag
 	; clear or set bit according to flag C
 	sbi PORTB, PIN_LED 	;0.250us - HIGH
-	brcс skpnopG		;0.125us
-	nop					;0.125us
+	brcc skpnopG		;0.125us
 	nop					;0.125us
 	nop					;0.125us
 skpnopG:
@@ -26,30 +25,76 @@ loop_R:
 	lsl tmp				; shift bit to C flag
 	; clear or set bit according to flag C
 	sbi PORTB, PIN_LED 	;0.250us - HIGH
-	brcс skpnopR		;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
+	brcs skpnopR		;0.125us
+	cbi PORTB, PIN_LED 	;0.250us - LOW
 skpnopR:
+	nop
 	cbi PORTB, PIN_LED 	;0.250us - LOW
 	dec tmp3			;0.125us
 	brne loop_R			;0.125us
 
 	; send B color
-	lds tmp, byteB		;0.250us
+	;lds tmp, byteB		;0.250us
 loop_B:
-	lsl tmp				; shift bit to C flag
-	; clear or set bit according to flag C
-	sbi PORTB, PIN_LED 	;0.250us - HIGH
-	brcс skpnopB		;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-skpnopB:
-	cbi PORTB, PIN_LED 	;0.250us - LOW
-	dec tmp4			;0.125us
-	brne loop_B			;0.125us
-	sei
+;	lsl tmp				; shift bit to C flag
+;	; clear or set bit according to flag C
+;	sbi PORTB, PIN_LED 	;0.250us - HIGH
+;	brcc skpnopB		;0.125us
+;	nop					;0.125us
+;	nop					;0.125us
+;skpnopB:
+;	cbi PORTB, PIN_LED 	;0.250us - LOW
+;	dec tmp4			;0.125us
+;	brne loop_B			;0.125us
+;	sei
+	sbi PORTB, PIN_LED
+	nop
+	nop
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	sbi PORTB, PIN_LED
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	nop
+	nop
+	sbi PORTB, PIN_LED
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	nop
+	nop
+	sbi PORTB, PIN_LED
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	nop
+	nop
+	sbi PORTB, PIN_LED
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	nop
+	nop
+	sbi PORTB, PIN_LED
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	nop
+	nop
+	sbi PORTB, PIN_LED
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	nop
+	nop
+	sbi PORTB, PIN_LED
+	nop
+	cbi PORTB, PIN_LED
+	nop
+	nop
+	nop
 	ret
 	
 ; preset colors for debug
@@ -68,8 +113,8 @@ debug_red:
 	rjmp sendColor
 
 debug_green:
-	ldi tmp, 255
-	sts byteR, z0
+	ldi tmp, 200
+	sts byteR, tmp
 	sts byteG, tmp
 	sts byteB, z0
 	rjmp sendColor
@@ -96,7 +141,7 @@ debug_violet:
 	rjmp sendColor
 
 debug_yellow:
-	ldi tmp, 255
+	ldi tmp, 100
 	sts byteR, tmp
 	sts byteG, tmp
 	sts byteB, z0
