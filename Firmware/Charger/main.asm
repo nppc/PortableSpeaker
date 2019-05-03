@@ -100,14 +100,14 @@ byteB:						.BYTE 1
 
 RESET:
 	cli
-	sbi DDRB, PB2
-	sbi PORTB, PB2
-	sbi DDRB, PIN_LED
+
 
 	;initialize constants
 	clr z0
 	clr z1
 	inc z1
+
+	rcall ws2812_init
 	
 	clr Voltage_Set	; At the beginning it is always 0.
 	
@@ -138,13 +138,21 @@ RESET:
 	sei
 	
 	#ifdef DEBUG
-		;rcall debug_green
-		rcall debug_off
+		;rcall sendColor
+		;rcall debug_off
 		;rcall debug_yellow
 	#endif
 	; set LED color to GREEN
 	
 loop:
+	rcall sendColor
+	
+	ldi tmp, 255
+loop1:
+	dec tmp
+	brne loop1
+	
+	rjmp loop
 	; wait for ADC complete
 	sbic ADCSRA, ADSC
 	rjmp loop
