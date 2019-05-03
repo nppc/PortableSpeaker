@@ -1,4 +1,101 @@
-.MACRO SEND1COLOR_V2
+; Vry good research of ws2812 timing was done here:
+; https://cpldcpu.wordpress.com/2014/01/14/light_ws2812-library-v2-0-part-i-understanding-the-ws2812/
+;
+
+shortLED:
+	ldi tmp1, 1<<PIN_LED
+	mov tmp3, tmp1	; pin to trigger
+	ldi tmp1, 7
+	ldi ZL, LOW(byteR)
+	ldi ZH, HIGH(byteR)
+	ld tmp2, Z+
+	cli
+cont06:
+	nop
+cont07:
+	;nop ; most probaby don't need as next cbi uses 2 cycles
+	cbi PORTB, PIN_LED	; should work out PORTB, z0 ???????????
+cont09:
+	lsl tmp2
+	out PINB, tmp3	; toggle to HIGH (out PORTB, z1)
+	brcs skip03
+	out PINB, tmp3	; toggle to LOW (out PORTB, z0)
+skip03:
+	dec tmp1
+	brne cont06
+	lsl tmp2
+	;brcc Lx008
+	; send last 1
+	cbi PORTB, PIN_LED ; should work (out PORTB, z0) ; ??????????????
+	ldi tmp1, 7
+	out PINB, tmp3	; toggle to HIGH (out PORTB, z1)
+	brcc Lx008
+	ld tmp2, Z+
+	dec tmp
+	brne cont07
+	rjmp brk18
+	;send last 0
+Lx008:	
+	;cbi PORTB, PIN_LED ; should work (out PORTB, z0) ; ?????????????
+	;ldi tmp1, 7
+	;out PINB, tmp3	; toggle to HIGH (out PORTB, z1)
+	;nop
+	out PINB, tmp3	; toggle to LOW (out PORTB, z0)
+	ld 	tmp2, Z+
+	dec tmp
+	brne cont09
+brk18:
+	cbi PORTB, PIN_LED ; just force ine down
+	sei
+	ret
+	
+;shortLED:
+;	ldi tmp1, 1<<PIN_LED
+;	mov tmp3, tmp1	; pin to trigger
+;	ldi tmp1, 7
+;	ldi ZL, LOW(byteR)
+;	ldi ZH, HIGH(byteR)
+;	ld tmp2, Z+
+;	cli
+;cont06:
+;	nop
+;cont07:
+;	;nop ; most probaby don't need as next cbi uses 2 cycles
+;	cbi PORTB, PIN_LED	; should work out PORTB, z0 ???????????
+;cont09:
+;	lsl tmp2
+;	out PINB, tmp3	; toggle to HIGH (out PORTB, z1)
+;	brcs skip03
+;	out PINB, tmp3	; toggle to LOW (out PORTB, z0)
+;skip03:
+;	dec tmp1
+;	brne cont06
+;	lsl tmp2
+;	brcc Lx008
+;	; send last 1
+;	cbi PORTB, PIN_LED ; should work (out PORTB, z0) ; ??????????????
+;	ldi tmp1, 7
+;	out PINB, tmp3	; toggle to HIGH (out PORTB, z1)
+;	ld tmp2, Z+
+;	dec tmp
+;	brne cont07
+;	rjmp brk18
+;	;send last 0
+;Lx008:	
+;	cbi PORTB, PIN_LED ; should work (out PORTB, z0) ; ?????????????
+;	ldi tmp1, 7
+;	out PINB, tmp3	; toggle to HIGH (out PORTB, z1)
+;	nop
+;	out PINB, tmp3	; toggle to LOW (out PORTB, z0)
+;	ld 	tmp2, Z+
+;	dec tmp
+;	brne cont09
+;brk18:
+;	cbi PORTB, PIN_LED ; just force ine down
+;	sei
+;	ret	
+
+.MACRO SEND1COLOR
 	out PINB, tmp1	;0.125us - toggle HIGH
 	sbrc tmp,7
 	LPM
@@ -49,112 +146,6 @@
 	LPM
 .ENDMACRO
 
-.MACRO SEND1COLOR
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop8			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop8:
-	out PINB, tmp1	
-	brcs wsend8
-	nop
-	nop
-	nop
-wsend8:
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop7			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop7:
-	out PINB, tmp1	
-	brcs wsend7
-	nop
-	nop
-	nop
-wsend7:
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop6			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop6:
-	out PINB, tmp1	
-	brcs wsend6
-	nop
-	nop
-	nop
-wsend6:	
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop5			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop5:
-	out PINB, tmp1	
-	brcs wsend5
-	nop
-	nop
-	nop
-wsend5:
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop4			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop4:
-	out PINB, tmp1	
-	brcs wsend4
-	nop
-	nop
-	nop
-wsend4:
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop3			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop3:
-	out PINB, tmp1	
-	brcs wsend3
-	nop
-	nop
-	nop
-wsend3:
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop2			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop2:
-	out PINB, tmp1	
-	brcs wsend2
-	nop
-	nop
-	nop
-wsend2:
-	lsl tmp
-	out PINB, tmp1		;0.125us - toggle HIGH
-	brcc nop1			;0.125us
-	nop					;0.125us
-	nop					;0.125us
-	nop					;0.125us
-nop1:
-	out PINB, tmp1	
-	brcs wsend1
-	nop
-	nop
-	nop
-wsend1:
-.ENDMACRO
 
 ws2812_init:
 	#ifdef DEBUG
@@ -170,116 +161,29 @@ ws2812_init:
 
 ; send 3 bytes of data GRB (high first)
 sendColor:
-	;cbi PORTB, PIN_LED ; make sure it LOW
 	ldi tmp1, 1<<PIN_LED
-	;ldi tmp, 8			; bits per byte
-	;mov tmp2,tmp		; counter for G
-	;mov tmp3,tmp		; counter for R
-	;mov tmp4,tmp		; counter for B
 	cli
-	; send G color
-	;lds tmp, byteG		;0.250us
 	ldi tmp, 1
-	SEND1COLOR_V2	; Green
+	SEND1COLOR	; Green
 	ldi tmp, 10
-	SEND1COLOR_V2	; Red
+	SEND1COLOR	; Red
 	ldi tmp, 0
-	SEND1COLOR_V2	; Blue
+	SEND1COLOR	; Blue
 	clr z0		; restore z0 register as it will be corrupted
 	sei
 	ret
-;loop_G:
-;	lsl tmp				; shift bit to C flag
-;	sbi PORTB, PIN_LED 	;0.250us - HIGH
-;	brcc skpnopG		;0.125us
-;	nop					;0.125us
-;	nop					;0.125us
-;skpnopG:
-;	cbi PORTB, PIN_LED 	;0.250us - LOW
-;	dec tmp2			;0.125us
-;	brne loop_G			;0.125us
-;
-;	; send R color
-;	;lds tmp, byteR		;0.250us
-;	ldi tmp, 0
-;loop_R:
-;	lsl tmp				; shift bit to C flag
-;	; clear or set bit according to flag C
-;	out PINB, tmp1		;0.125us - toggle HIGH
-;	;sbi PORTB, PIN_LED 	;0.250us - HIGH
-;	brcc skpnopR		;0.125us
-;	nop
-;	nop
-;	nop
-;skpnopR:
-;	out PINB, tmp1		;0.125us - toggle LOW
-;	;cbi PORTB, PIN_LED 	;0.250us - LOW
-;	dec tmp3			;0.125us
-;	brne loop_R			;0.125us
-;
-;	; send B color
-;	;lds tmp, byteB		;0.250us
-;loop_B:
-;;	lsl tmp				; shift bit to C flag
-;;	; clear or set bit according to flag C
-;;	sbi PORTB, PIN_LED 	;0.250us - HIGH
-;;	brcc skpnopB		;0.125us
-;;	nop					;0.125us
-;;	nop					;0.125us
-;;skpnopB:
-;;	cbi PORTB, PIN_LED 	;0.250us - LOW
-;;	dec tmp4			;0.125us
-;;	brne loop_B			;0.125us
-;;	sei
-;	sbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	sbi PORTB, PIN_LED
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	sbi PORTB, PIN_LED
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	sbi PORTB, PIN_LED
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	sbi PORTB, PIN_LED
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	sbi PORTB, PIN_LED
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	sbi PORTB, PIN_LED
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	sbi PORTB, PIN_LED
-;	nop
-;	cbi PORTB, PIN_LED
-;	nop
-;	nop
-;	nop
-;	ret
+
+sendColor_new:
+	ldi tmp, 1
+	sts byteR, tmp
+	ldi tmp, 10
+	sts byteG, tmp
+	ldi tmp, 0
+	sts byteB, tmp
+	ldi tmp, 3 ; bytes to send
+	rcall shortLED
+	ret
+
 	
 ; preset colors for debug
 #ifdef DEBUG	
