@@ -4,11 +4,19 @@
 ; Author : Pavel
 ;
 
+; Start to charge when voltage is 4v/cell or less
+
 #define DEBUG
 
-;#define	MOVINGAVERAGE ; comment it if not needed
+#define	MOVINGAVERAGE ; comment it if not needed
 .EQU	MOVINGAVERAGE_N = 5 ; can be 3, 5 or 7.
 
+;Samsung INR18650-29E 2900mAh E6 - 8.25A
+.EQU	CELLS					= 6		; How many cells in series to charge
+.EQU	CELL_CAPACITANCE		= 290 * 3 ; 2900mAh 3 parallell
+.EQU	TRIGGER_CHARGE_VOLTAGE	= CELLS * 4 * 100 ; 4v/cell (mV*10)
+.EQU	CHARGE_CURRENT			= 200	; 2A - limited by power unit (when working together with amplifier)
+.EQU	CHARGE_CUTOFF			= 17		; 170mA (0.02C cutoff)
 
 .include "tn85def.inc"
 
@@ -38,22 +46,15 @@
 .def	tmpL2		=	r10	; temp register for 16 bit calculations
 .def	tmpH2		=	r11	; temp register for 16 bit calculations
 .def	ADC_counter	=	r20	; Flags for ADC. Refer to ADC.inc for details
-.def	setVolt_tmp	=	r12	; For smooth change of preset voltage
-.def	V_chg_const	=	r13	; Converted value for timer0 from Voltage_Change SRAM
-.def	Voltage_Set	=	r21	; Voltage for Buck output (V*10)
-.def	SchedulerCnt=	r14	; Counter for scheduler
-.def	PWM_flags	=	r22	; Flags for generating PWM 
+.def	Charge_flags=	r21	; Flags for Charging 
+	; bit 7 - Regulate PWM - bit sets every 1ms indicating that we can compare voltages and adjust PWM.
+	; bit 6 - If not charging, then check for trigger voltage to start charge. If charging, then charge till full
+	.EQU	Charge_flag_regulatePWM = 7
+	.EQU	Charge_flag_Charging	= 6 
 ; YH:YL 
 ; ZH:ZL for general use in main loop
 .DSEG
 .ORG SRAM_START
-;USI_dataBuffer:				.BYTE USI_DATALEN	; USI bytes buffer
-;USI_buffer_updateStatus:	.BYTE 1	; 1 - Buffer updated with new data, 0 - data is read by main loop
-; Variables (R/W)
-Voltage_Change:				.BYTE 1 ; (V*10). Before using this variable, we need to convert it for timer0 counter
-Voltage_Min:				.BYTE 2 ; (mV*10)
-Voltage_Max:				.BYTE 2 ; (mV*10)
-; Variables (R)
 Voltage_Measured:			.BYTE 2 ; (mV*10)
 Current_Measured:			.BYTE 2 ; (mA*10)
 ADC_Current_zero_RAW:		.BYTE 2	; ADC value when no load (0.0A)
@@ -64,8 +65,8 @@ M_AVERAGE_current_COUNTER:	.BYTE 1	 ; Counter in the table
 M_AVERAGE_current_TABLE:	.BYTE MOVINGAVERAGE_N * 2 ; Table for running moving average algorithm (max 14 bytes).
 #endif
 ; RGB bytes
-byteR:						.BYTE 1
 byteG:						.BYTE 1
+byteR:						.BYTE 1
 byteB:						.BYTE 1
 
 .CSEG
@@ -109,7 +110,7 @@ RESET:
 
 	rcall ws2812_init
 	
-	clr Voltage_Set	; At the beginning it is always 0.
+	clr Charge_flags
 	
 	ldi tmp, 1<<CLKPCE	
 	out CLKPR, tmp		; enable clock change
@@ -119,8 +120,6 @@ RESET:
 	out SPH,tmp				; Set Stack Pointer to top of RAM
 	ldi tmp, low(RAMEND)
 	out SPL,tmp				; Set Stack Pointer to top of RAM
-
-	;rcall EEPROM_restoreSettings
 
 	rcall init_PWM	; Initialize FET controlling with PWM
 	#ifdef MOVINGAVERAGE
@@ -138,26 +137,17 @@ RESET:
 	sei
 	
 	#ifdef DEBUG
+		rcall LED_status_Green
 		;rcall sendColor
 		;rcall debug_off
 		;rcall debug_yellow
 	#endif
-	; set LED color to GREEN
 	
 loop:
-	rcall sendColor
-	
-	ldi tmp, 255
-loop1:
-	dec tmp
-	brne loop1
-	
-	rjmp loop
 	; wait for ADC complete
 	sbic ADCSRA, ADSC
 	rjmp loop
 	rcall ADC_Read
-
-	rcall Regulate_PWM
-	
+	rcall DoCharge
 	rjmp loop
+	

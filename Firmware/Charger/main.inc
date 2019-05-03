@@ -1,7 +1,3 @@
-; Flag PWM_flags
-; bit 7 - Regulate PWM - bit sets every 1ms indicating that we can compare voltages and adjust PWM.
-.EQU	PWM_flag_regulatePWM = 7
-
 ; Convert ADC RAW voltage to real voltage
 ; Remember, that raw ADC is multiplied by 2!
 Convert_VoltageADC_to_Volt:
@@ -77,33 +73,89 @@ mult64:
 convert_C_exit:
 	ret
 
-; ***** TODO *****
-; The routine checks measured voltage and compare it to the desired voltage (setVolt_tmp)
-; Need to see, how it is better to check voltage, by filtered RAW value or calculated V*10?
-Regulate_PWM:
-	; check flag PWM_flag_regulatePWM
-	sbrs PWM_flags, PWM_flag_regulatePWM
-	rjmp Regulate_PWM_exit
-	cbr PWM_flags, (1<<PWM_flag_regulatePWM)	; clear flag
-	in tmp1, OCR1A	; read current PWM
-	; compare voltages
-	; TODO votage now is 2 byte value
-	lds tmp, Voltage_Measured	
-	cp tmp, setVolt_tmp
-	breq Regulate_PWM_exit	; No need to change
-	brsh Regulate_PWM_minus ; need to decrease PWM
-	; need to increase PWM
-	; check that we not at max already
-	cpi tmp1, 255
-	breq Regulate_PWM_exit
-	inc tmp1
-Regulate_PWM_update:
-	out OCR1A, tmp1
-Regulate_PWM_exit:
+; charging process
+; first safety checks
+; then try to increase pwm
+DoCharge:
+	; Are we charging?
+	sbrc Charge_flags, Charge_flag_Charging
+	rjmp Charging
+	; should we start charge?
+	lds tmpL1, Voltage_Measured
+	lds tmpH1, Voltage_Measured+1
+	ldi tmp, LOW(TRIGGER_CHARGE_VOLTAGE)
+	ldi tmp1, HIGH(TRIGGER_CHARGE_VOLTAGE)
+	cp tmpL1, tmp
+	cpc tmpH1, tmp1
+	brlo Charging	; start charging
+	rjmp DoCharge_exit
+
+Charging:
+	sbr Charge_flags, 1<<Charge_flag_Charging ; start charging
+	; check that voltage not higher than CELLS * 4.2V * 100
+	lds tmpL1, Voltage_Measured
+	lds tmpH1, Voltage_Measured+1
+	ldi tmp, LOW(CELLS * 420 + 1)
+	ldi tmp1, HIGH(CELLS * 420 + 1)
+	cp tmpL1, tmp
+	cpc tmpH1, tmp1
+	brlo ChargeVoltageSafe
+	; Maybe we need to finish charge?
+	; Check cutoff Current
+	lds tmpL1, Current_Measured
+	lds tmpH1, Current_Measured+1
+	ldi tmp, LOW(CHARGE_CUTOFF)
+	ldi tmp1, HIGH(CHARGE_CUTOFF)
+	cp tmpL1, tmp
+	cpc tmpH1, tmp1
+	brlo Charging_Competed
+	; we need continue to charge, but reduce PWM
+	rcall reduce_PWM	; reduce PWM
+ChargeVoltageSafe:
+	; Check Current
+	lds tmpL1, Current_Measured
+	lds tmpH1, Current_Measured+1
+	ldi tmp, LOW(CHARGE_CURRENT)
+	ldi tmp1, HIGH(CHARGE_CURRENT)
+	cp tmpL1, tmp
+	cpc tmpH1, tmp1
+	brlo ChargeCurrentSafe
+	rcall reduce_PWM	; reduce PWM
+ChargeCurrentSafe:
+	rcall increase_PWM	; 1 unit per 1ms
+DoCharge_exit:
 	ret
-Regulate_PWM_minus:
-	; check that we not at min already
-	cpi tmp1, 0
-	breq Regulate_PWM_exit
-	dec tmp1
-	rjmp Regulate_PWM_update
+
+Charging_Competed:
+	; need to clear flag Charge_flag_Charging  when fully charged
+	cbr Charge_flags, 1<<Charge_flag_Charging
+	out OCR1A, z0	; turn off PWM
+	rjmp DoCharge_exit
+
+
+; Indicate charging process
+Charging_Status_LED:
+	; if not charging, then show the battery status (green)
+	sbrs Charge_flags, Charge_flag_Charging
+	rjmp LED_status_Green
+	; if charging - show charging state
+	; CC (control Current) - RED
+	; CV (control Voltage) - ORANGE
+	; CHARGE_CUTOFF * 2 - BLINK GREEN
+
+	ret
+LED_status_Green:
+	ldi tmp, 50
+	sts byteR, tmp
+	ldi tmp, 150
+	sts byteG, tmp
+	sts byteB, z0
+	rjmp wsLED
+
+LED_status_Orange:
+	ldi tmp, 100
+	sts byteR, tmp
+	ldi tmp, 50
+	sts byteG, tmp
+	sts byteB, z0
+	rjmp wsLED
