@@ -6,7 +6,7 @@
 
 #define DEBUG
 
-#define	MOVINGAVERAGE ; comment it if not needed
+;#define	MOVINGAVERAGE ; comment it if not needed
 .EQU	MOVINGAVERAGE_N = 5 ; can be 3, 5 or 7.
 
 

@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm Thu May 02 22:42:56 2019
+AVRASM ver. 2.2.7  C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm Fri May 03 07:53:02 2019
 
 [builtin](2): Including file 'C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\tn85def.inc'
 C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(13): Including file 'C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\tn85def.inc'
@@ -711,7 +711,7 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
                                  
                                  #define DEBUG
                                  
-                                 #define	MOVINGAVERAGE ; comment it if not needed
+                                 ;#define	MOVINGAVERAGE ; comment it if not needed
                                  .EQU	MOVINGAVERAGE_N = 5 ; can be 3, 5 or 7.
                                  
                                  
@@ -805,21 +805,17 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
 000065                           Current_Measured:			.BYTE 1 ; (C*10)
 000066                           ADC_Current_zero_RAW:		.BYTE 2	; ADC value when no load (0.0A)
                                  #ifdef MOVINGAVERAGE
-000068                           M_AVERAGE_voltage_COUNTER:	.BYTE 1	 ; Counter in the table
-000069                           M_AVERAGE_voltage_TABLE:	.BYTE MOVINGAVERAGE_N * 2 ; Table for running moving average algorithm (max 14 bytes).
-000073                           M_AVERAGE_current_COUNTER:	.BYTE 1	 ; Counter in the table
-000074                           M_AVERAGE_current_TABLE:	.BYTE MOVINGAVERAGE_N * 2 ; Table for running moving average algorithm (max 14 bytes).
                                  #endif
                                  ; RGB bytes
-00007e                           byteR:						.BYTE 1
-00007f                           byteG:						.BYTE 1
-000080                           byteB:						.BYTE 1
+000068                           byteR:						.BYTE 1
+000069                           byteG:						.BYTE 1
+00006a                           byteB:						.BYTE 1
                                  
                                  .CSEG
                                  .ORG 0
                                  
                                  	; Interrupt vectors
-000000 c195                      	rjmp RESET ; Reset Handler
+000000 c15c                      	rjmp RESET ; Reset Handler
 000001 9518                      	reti	;rjmp EXT_INT0 ; IRQ0 Handler
 000002 9518                      	reti	;PCINT0 External Interrupt Request 1
 000003 9518                      	reti	;TIMER1 COMPA Timer/Counter1 Compare Match A
@@ -829,7 +825,7 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
 000007 9518                      	reti	;ANA_COMP Analog Comparator
 000008 9518                      	reti	;ADC_INT ;ADC Conversion Complete
 000009 9518                      	reti	;TIMER1 COMPB Timer/Counter1 Compare Match B
-00000a c0b0                      	rjmp TMR0_COMPA ; Timer/Counter0 Compare Match A
+00000a c07c                      	rjmp TMR0_COMPA ; Timer/Counter0 Compare Match A
 00000b 9518                      	reti	;TIMER0 COMPB Timer/Counter0 Compare Match B
 00000c 9518                      	reti	;WDT
 00000d 9518                      	reti	;rjmp USI_start	; USI start
@@ -922,10 +918,10 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
 000032 9543                      	inc ADC_counter	; increment counter
 000033 9508                      	ret
                                  ADC_read_Volt:
-000034 d122                      	rcall Convert_VoltageADC_to_Volt
+000034 d0ef                      	rcall Convert_VoltageADC_to_Volt
 000035 cffc                      	rjmp adc_exit
                                  ADC_read_Current:
-000036 d133                      	rcall Convert_CurrentADC_to_Current
+000036 d0fd                      	rcall Convert_CurrentADC_to_Current
                                  	; also reset counter
 000037 ef4f                      	ldi ADC_counter, 255	; Before exit counter will became 0.
 000038 cff9                      	rjmp adc_exit
@@ -948,114 +944,38 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
 00003f e003                      	ldi tmp, ISENSE_ADC
 000040 b907                      	out ADMUX, tmp
                                  	#ifdef MOVINGAVERAGE
-                                 		; fill M_average array for I
-000041 e7e3                      		ldi ZL, LOW(M_AVERAGE_current_COUNTER)
-000042 e0f0                      		ldi ZH, HIGH(M_AVERAGE_current_COUNTER)
-000043 d00b                      		rcall init_ADC_array
                                  	#else
+                                 		; we need at least one adc conversion to have reference
+000041 e00a                      		ldi tmp, 10	; read 10 samples
+                                 	waitforADC_Ref_L1:
+000042 9a36                      		sbi ADCSRA, ADSC
+                                 		; wait for result
+                                 	waitforADC_Ref:
+000043 9936                      		sbic ADCSRA, ADSC
+000044 cffe                      		rjmp waitforADC_Ref
+000045 b034                      		in tmp2, ADCL
+000046 b045                      		in tmp3, ADCH
+000047 950a                      		dec tmp
+000048 f7c9                      		brne waitforADC_Ref_L1
                                  	#endif
                                  	; store last value to get reference for Current measurement (0.0A)
-000044 9230 0066                 	sts ADC_Current_zero_RAW, tmp2
-000046 9240 0067                 	sts ADC_Current_zero_RAW+1, tmp3
+000049 9230 0066                 	sts ADC_Current_zero_RAW, tmp2
+00004b 9240 0067                 	sts ADC_Current_zero_RAW+1, tmp3
                                  
-000048 e002                      	ldi tmp, VSENSE_ADC
-000049 b907                      	out ADMUX, tmp
+00004d e002                      	ldi tmp, VSENSE_ADC
+00004e b907                      	out ADMUX, tmp
                                  	#ifdef MOVINGAVERAGE
-                                 		; fill M_average array for V
-00004a e6e8                      		ldi ZL, LOW(M_AVERAGE_voltage_COUNTER)
-00004b e0f0                      		ldi ZH, HIGH(M_AVERAGE_voltage_COUNTER)
-00004c d002                      		rcall init_ADC_array
-                                 		; now V channel is selected
                                  	#endif
                                  	; clear ADC interrupt flag
-00004d 9a34                      	sbi ADCSRA, ADIF
+00004f 9a34                      	sbi ADCSRA, ADIF
                                  	; no sense to store voltage now
                                  	;sts ADC_Voltage_RAW, itmp2
                                  	;sts ADC_Voltage_RAW+1, itmp3
-00004e 9508                      	ret
+000050 9508                      	ret
                                  
                                  #ifdef MOVINGAVERAGE
-                                 init_ADC_array:
-00004f e00a                      	ldi tmp, MOVINGAVERAGE_N * 2
-                                 init_ADC_loop:
-000050 930f                      	push tmp
-000051 93ef                      	push ZL
-000052 93ff                      	push ZH
-                                 	; start first conversion
-000053 9a36                      	sbi ADCSRA, ADSC
-                                 	; wait for result
-                                 waitforADC:
-000054 9936                      	sbic ADCSRA, ADSC
-000055 cffe                      	rjmp waitforADC
-                                 	; read ADC
-000056 b034                      	in tmp2, ADCL
-000057 b045                      	in tmp3, ADCH
-000058 d00c                      	rcall moving_average	; fill array
-000059 91ff                      	pop ZH
-00005a 91ef                      	pop ZL
-00005b 910f                      	pop tmp
-00005c 950a                      	dec tmp
-00005d f791                      	brne init_ADC_loop
-00005e 9508                      	ret
                                  #endif
                                  .include "MovAverage.inc"
-                                 
-                                 
-                                 ; while Mov Average init interrupts should be disabled
-                                 init_Moving_Average:
-00005f 94f8                      	cli	; just in case
-000060 9200 0068                 	sts M_AVERAGE_voltage_COUNTER, z0
-000062 9200 0073                 	sts M_AVERAGE_current_COUNTER, z0
-000064 9508                      	ret
-                                 
-                                 
-                                 ; smooth data via moving average algorithm
-                                 ; store/read 10 bit value to the Moving Average array
-                                 ; value is in tmp2:tmp3 
-                                 ; Z points to the array of data (Counter and averaging data)
-                                 moving_average:
-                                 	; we will run average within MOVINGAVERAGE_N values.
-                                 	; pointer for moving average table
-000065 93ef                      	push ZL	; store for future use
-000066 93ff                      	push ZH	; store for future use
-000067 9101                      	ld tmp, Z+
-000068 2f10                      	mov tmp1, tmp
-000069 0f11                      	lsl tmp1	; multiply by 2 because we operate with 16 bit values
-00006a 0fe1                      	add ZL, tmp1
-00006b 1df0                      	adc ZH, z0
-                                 	; store current value in the table
-00006c 9231                      	st Z+, tmp2
-00006d 8240                      	st Z, tmp3
-                                 	; update counter
-00006e 9503                      	inc tmp
-00006f 3005                      	cpi tmp, MOVINGAVERAGE_N
-000070 f409                      	brne mov_avrg_skp
-000071 2700                      	clr tmp
-                                 mov_avrg_skp:
-000072 91ff                      	pop ZH
-000073 91ef                      	pop ZL
-000074 9301                      	st Z+, tmp	; Store counter
-                                 	; sum all values in the table
-                                 	; Z points to the first element in the table
-000075 e005                      	ldi tmp, MOVINGAVERAGE_N
-000076 2488                      	clr tmpL1
-000077 2499                      	clr tmpH1
-                                 mov_avrg_loop:
-000078 9031                      	ld tmp2, Z+
-000079 9041                      	ld tmp3, Z+
-00007a 0c83                      	add tmpL1, tmp2
-00007b 1c94                      	adc tmpH1, tmp3
-00007c 950a                      	dec tmp
-00007d f7d1                      	brne mov_avrg_loop
-                                 	; divide result by MOVINGAVERAGE_N
-00007e e005                      	ldi tmp, MOVINGAVERAGE_N
-00007f 2ea0                      	mov tmpL2, tmp
-000080 24bb                      	clr tmpH2
-000081 d003                      	rcall div16u
-                                 	; new result store back to tmp2:tmp3
-000082 2c38                      	mov tmp2, tmpL1
-000083 2c49                      	mov tmp3, tmpH1
-000084 9508                      	ret
                                  
                                  #endif	
                                  .include "math.inc"
@@ -1075,143 +995,150 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
                                  ;*
                                  ;***************************************************************************
                                  ; about 25us at 9.6mhz
-000085 2433                      div16u:	clr	tmp2	;clear remainder Low byte
-000086 1844                      	sub	tmp3,tmp3;clear remainder High byte and carry
-000087 e101                      	ldi	tmp,17	;init loop counter
-000088 1c88                      d16u_1:	rol	tmpL1		;shift left dividend
-000089 1c99                      	rol	tmpH1
-00008a 950a                      	dec	tmp		;decrement counter
-00008b f441                      	brne	d16u_2		;if done
+000051 2433                      div16u:	clr	tmp2	;clear remainder Low byte
+000052 1844                      	sub	tmp3,tmp3;clear remainder High byte and carry
+000053 e101                      	ldi	tmp,17	;init loop counter
+000054 1c88                      d16u_1:	rol	tmpL1		;shift left dividend
+000055 1c99                      	rol	tmpH1
+000056 950a                      	dec	tmp		;decrement counter
+000057 f441                      	brne	d16u_2		;if done
                                  	; take care of reminder (we want to have coeff as precise as possible)
                                  	;divide divisor by 2
-00008c 94b6                      	lsr tmpH2
-00008d 94a7                      	ror tmpL2
+000058 94b6                      	lsr tmpH2
+000059 94a7                      	ror tmpL2
                                  	; compare reminder to half of divisor
-00008e 143a                      	cp  tmp2, tmpL2 
-00008f 044b                      	cpc	tmp3, tmpH2
-000090 f010                      	brlo d16u_exit
+00005a 143a                      	cp  tmp2, tmpL2 
+00005b 044b                      	cpc	tmp3, tmpH2
+00005c f010                      	brlo d16u_exit
                                  	; increment result
-000091 0c81                      	add tmpL1, z1
-000092 1c90                      	adc tmpH1, z0
+00005d 0c81                      	add tmpL1, z1
+00005e 1c90                      	adc tmpH1, z0
                                  d16u_exit:
-000093 9508                      	ret			;    return
-000094 1c33                      d16u_2:	rol	tmp2	;shift dividend into remainder
-000095 1c44                      	rol	tmp3
-000096 183a                      	sub	tmp2,tmpL2	;remainder = remainder - divisor
-000097 084b                      	sbc	tmp3,tmpH2	;
-000098 f420                      	brcc	d16u_3		;if result negative
-000099 0c3a                      	add	tmp2,tmpL2	;    restore remainder
-00009a 1c4b                      	adc	tmp3,tmpH2
-00009b 9488                      	clc			;    clear carry to be shifted into result
-00009c cfeb                      	rjmp	d16u_1		;else
-00009d 9408                      d16u_3:	sec			;    set carry to be shifted into result
+00005f 9508                      	ret			;    return
+000060 1c33                      d16u_2:	rol	tmp2	;shift dividend into remainder
+000061 1c44                      	rol	tmp3
+000062 183a                      	sub	tmp2,tmpL2	;remainder = remainder - divisor
+000063 084b                      	sbc	tmp3,tmpH2	;
+000064 f420                      	brcc	d16u_3		;if result negative
+000065 0c3a                      	add	tmp2,tmpL2	;    restore remainder
+000066 1c4b                      	adc	tmp3,tmpH2
+000067 9488                      	clc			;    clear carry to be shifted into result
+000068 cfeb                      	rjmp	d16u_1		;else
+000069 9408                      d16u_3:	sec			;    set carry to be shifted into result
                                  .include "scheduler.inc"
-00009e cfe9                      
+00006a cfe9                      
                                  ; At 8Mhz divider is 1/64 and overflow value is 125 (OCR0A).
                                  init_Scheduler:
                                  	; Halt the timer
-00009f e801                      	ldi tmp, (1<<TSM) | (1<<PSR0)
-0000a0 bd0c                      	out GTCCR, tmp		; we don't care about timer1 as GTCCR is not used there
+00006b e801                      	ldi tmp, (1<<TSM) | (1<<PSR0)
+00006c bd0c                      	out GTCCR, tmp		; we don't care about timer1 as GTCCR is not used there
                                  	; Configure timer in CTC mode and prescaller
-0000a1 e002                      	ldi tmp, (1<<WGM01) | (0<<WGM00)
-0000a2 bd0a                      	out TCCR0A, tmp
-0000a3 e003                      	ldi tmp, (0<<WGM02) | (0<<CS02) | (1<<CS01) | (1<<CS00)
-0000a4 bf03                      	out TCCR0B, tmp
-0000a5 be02                      	out TCNT0, z0
+00006d e002                      	ldi tmp, (1<<WGM01) | (0<<WGM00)
+00006e bd0a                      	out TCCR0A, tmp
+00006f e003                      	ldi tmp, (0<<WGM02) | (0<<CS02) | (1<<CS01) | (1<<CS00)
+000070 bf03                      	out TCCR0B, tmp
+000071 be02                      	out TCNT0, z0
                                  	; Set top value to match 1ms.
-0000a6 e70d                      	ldi tmp, 125
-0000a7 bd09                      	out OCR0A, tmp
+000072 e70d                      	ldi tmp, 125
+000073 bd09                      	out OCR0A, tmp
                                  	; Enable interrupt 
-0000a8 e100                      	ldi tmp, (1<<OCIE0A)
-0000a9 bf09                      	out TIMSK, tmp		; we don't care about timer1 interrupts as we don't use them. 
+000074 e100                      	ldi tmp, (1<<OCIE0A)
+000075 bf09                      	out TIMSK, tmp		; we don't care about timer1 interrupts as we don't use them. 
                                  	
-0000aa 24cc                      	clr setVolt_tmp		; At the beginning voltage is 0.
-0000ab 9508                      	ret
+000076 24cc                      	clr setVolt_tmp		; At the beginning voltage is 0.
+000077 9508                      	ret
                                  	
                                  ; The value transmitted via I2C and stored in EEPROM is human readable value ((V*10)/S)
                                  ; But we need to convert it for timer0 use
                                  Scheduler_convert_changeValue:
                                  	; formula is: (1000/1ms)/Value
-0000ac e003                      	ldi tmp, HIGH(1000)
-0000ad 2e90                      	mov tmpH1, tmp
-0000ae ee08                      	ldi tmp, LOW(1000)
-0000af 2e80                      	mov tmpL1, tmp
-0000b0 24bb                      	clr tmpH2
-0000b1 90a0 0060                 	lds tmpL2, Voltage_Change
-0000b3 dfd1                      	rcall div16u
-0000b4 2cd8                      	mov V_chg_const, tmpL1
-0000b5 9508                      	ret
+000078 e003                      	ldi tmp, HIGH(1000)
+000079 2e90                      	mov tmpH1, tmp
+00007a ee08                      	ldi tmp, LOW(1000)
+00007b 2e80                      	mov tmpL1, tmp
+00007c 24bb                      	clr tmpH2
+00007d 90a0 0060                 	lds tmpL2, Voltage_Change
+00007f dfd1                      	rcall div16u
+000080 2cd8                      	mov V_chg_const, tmpL1
+000081 9508                      	ret
                                  
                                  	
                                  Scheduler_start:
-0000b6 dff5                      	rcall Scheduler_convert_changeValue
-0000b7 2ced                      	mov SchedulerCnt, V_chg_const
+000082 dff5                      	rcall Scheduler_convert_changeValue
+000083 2ced                      	mov SchedulerCnt, V_chg_const
                                  	; start timer when everything else configured and ready
-0000b8 e000                      	ldi tmp, (0<<TSM)
-0000b9 bd0c                      	out GTCCR, tmp		; we don't care about timer1 as GTCCR is not used there
-0000ba 9508                      	ret
+000084 e000                      	ldi tmp, (0<<TSM)
+000085 bd0c                      	out GTCCR, tmp		; we don't care about timer1 as GTCCR is not used there
+000086 9508                      	ret
                                  	
                                  ; interrupt for timer0 counting (every 1ms)
                                  TMR0_COMPA:
                                  	; most of the time only these 6 instructions will run
-0000bb b62f                      	in r_sreg, SREG
-0000bc 6860                      	sbr PWM_flags, (1<<PWM_flag_regulatePWM)	; We adjust PWM every 1ms.
-0000bd 94ea                      	dec SchedulerCnt
-0000be f011                      	breq TMR0_changeVolt
-0000bf be2f                      	out SREG, r_sreg
-0000c0 9518                      	reti
+000087 b62f                      	in r_sreg, SREG
+000088 6860                      	sbr PWM_flags, (1<<PWM_flag_regulatePWM)	; We adjust PWM every 1ms.
+000089 94ea                      	dec SchedulerCnt
+00008a f011                      	breq TMR0_changeVolt
+00008b be2f                      	out SREG, r_sreg
+00008c 9518                      	reti
                                  TMR0_changeVolt:
-0000c1 2ced                      	mov SchedulerCnt, V_chg_const	; rewind counter
+00008d 2ced                      	mov SchedulerCnt, V_chg_const	; rewind counter
                                  	; compare setVolt_tmp to Voltage_Set
                                  	; if not equal, then adjust setVolt_tmp to be closer to Voltage_Set
-0000c2 115c                      	cpse Voltage_Set, setVolt_tmp
-0000c3 c002                      	rjmp TMR0_changeVolt_adjust
-0000c4 be2f                      	out SREG, r_sreg
-0000c5 9518                      	reti
+00008e 115c                      	cpse Voltage_Set, setVolt_tmp
+00008f c002                      	rjmp TMR0_changeVolt_adjust
+000090 be2f                      	out SREG, r_sreg
+000091 9518                      	reti
                                  TMR0_changeVolt_adjust:
-0000c6 16c5                      	cp setVolt_tmp, Voltage_Set
-0000c7 f018                      	brlo TMR0_changeVolt_adjust_inc
-0000c8 94ca                      	dec setVolt_tmp
-0000c9 be2f                      	out SREG, r_sreg
-0000ca 9518                      	reti
+000092 16c5                      	cp setVolt_tmp, Voltage_Set
+000093 f018                      	brlo TMR0_changeVolt_adjust_inc
+000094 94ca                      	dec setVolt_tmp
+000095 be2f                      	out SREG, r_sreg
+000096 9518                      	reti
                                  TMR0_changeVolt_adjust_inc:
-0000cb 94c3                      	inc setVolt_tmp
-0000cc be2f                      	out SREG, r_sreg
+000097 94c3                      	inc setVolt_tmp
+000098 be2f                      	out SREG, r_sreg
                                  .include "ws2812b.inc"
-0000cd 9518                      
+000099 9518                      
                                  sendColor:
-0000ce e008                      	ldi tmp, 8			; bits per byte
-0000cf 2e30                      	mov tmp2,tmp		; counter for G
-0000d0 2e40                      	mov tmp3,tmp		; counter for R
-0000d1 2e50                      	mov tmp4,tmp		; counter for B
-0000d2 94f8                      	cli
+00009a 98c0                      	cbi PORTB, PIN_LED ; make sure it LOW
+00009b e011                      	ldi tmp1, 1<<PIN_LED
+00009c e008                      	ldi tmp, 8			; bits per byte
+00009d 2e30                      	mov tmp2,tmp		; counter for G
+00009e 2e40                      	mov tmp3,tmp		; counter for R
+00009f 2e50                      	mov tmp4,tmp		; counter for B
+0000a0 94f8                      	cli
                                  	; send G color
-0000d3 9100 007f                 	lds tmp, byteG		;0.250us
+                                 	;lds tmp, byteG		;0.250us
+0000a1 ec08                      	ldi tmp, 200
                                  loop_G:
-0000d5 0f00                      	lsl tmp				; shift bit to C flag
+0000a2 0f00                      	lsl tmp				; shift bit to C flag
                                  	; clear or set bit according to flag C
-0000d6 9ac0                      	sbi PORTB, PIN_LED 	;0.250us - HIGH
-0000d7 f410                      	brcc skpnopG		;0.125us
-0000d8 0000                      	nop					;0.125us
-0000d9 0000                      	nop					;0.125us
+0000a3 9ac0                      	sbi PORTB, PIN_LED 	;0.250us - HIGH
+0000a4 f410                      	brcc skpnopG		;0.125us
+0000a5 0000                      	nop					;0.125us
+0000a6 0000                      	nop					;0.125us
                                  skpnopG:
-0000da 98c0                      	cbi PORTB, PIN_LED 	;0.250us - LOW
-0000db 943a                      	dec tmp2			;0.125us
-0000dc f7c1                      	brne loop_G			;0.125us
+0000a7 98c0                      	cbi PORTB, PIN_LED 	;0.250us - LOW
+0000a8 943a                      	dec tmp2			;0.125us
+0000a9 f7c1                      	brne loop_G			;0.125us
                                  
                                  	; send R color
-0000dd 9100 007e                 	lds tmp, byteR		;0.250us
+                                 	;lds tmp, byteR		;0.250us
+0000aa e000                      	ldi tmp, 0
                                  loop_R:
-0000df 0f00                      	lsl tmp				; shift bit to C flag
+0000ab 0f00                      	lsl tmp				; shift bit to C flag
                                  	; clear or set bit according to flag C
-0000e0 9ac0                      	sbi PORTB, PIN_LED 	;0.250us - HIGH
-0000e1 f008                      	brcs skpnopR		;0.125us
-0000e2 98c0                      	cbi PORTB, PIN_LED 	;0.250us - LOW
+0000ac bb16                      	out PINB, tmp1		;0.125us - toggle HIGH
+                                 	;sbi PORTB, PIN_LED 	;0.250us - HIGH
+0000ad f418                      	brcc skpnopR		;0.125us
+0000ae 0000                      	nop
+0000af 0000                      	nop
+0000b0 0000                      	nop
                                  skpnopR:
-0000e3 0000                      	nop
-0000e4 98c0                      	cbi PORTB, PIN_LED 	;0.250us - LOW
-0000e5 944a                      	dec tmp3			;0.125us
-0000e6 f7c1                      	brne loop_R			;0.125us
+0000b1 bb16                      	out PINB, tmp1		;0.125us - toggle LOW
+                                 	;cbi PORTB, PIN_LED 	;0.250us - LOW
+0000b2 944a                      	dec tmp3			;0.125us
+0000b3 f7b9                      	brne loop_R			;0.125us
                                  
                                  	; send B color
                                  	;lds tmp, byteB		;0.250us
@@ -1227,112 +1154,112 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
                                  ;	dec tmp4			;0.125us
                                  ;	brne loop_B			;0.125us
                                  ;	sei
-0000e7 9ac0                      	sbi PORTB, PIN_LED
-0000e8 0000                      	nop
-0000e9 0000                      	nop
-0000ea 0000                      	nop
-0000eb 98c0                      	cbi PORTB, PIN_LED
-0000ec 0000                      	nop
-0000ed 9ac0                      	sbi PORTB, PIN_LED
-0000ee 0000                      	nop
-0000ef 98c0                      	cbi PORTB, PIN_LED
-0000f0 0000                      	nop
-0000f1 0000                      	nop
-0000f2 0000                      	nop
-0000f3 9ac0                      	sbi PORTB, PIN_LED
-0000f4 0000                      	nop
-0000f5 98c0                      	cbi PORTB, PIN_LED
-0000f6 0000                      	nop
-0000f7 0000                      	nop
-0000f8 0000                      	nop
-0000f9 9ac0                      	sbi PORTB, PIN_LED
-0000fa 0000                      	nop
-0000fb 98c0                      	cbi PORTB, PIN_LED
-0000fc 0000                      	nop
-0000fd 0000                      	nop
-0000fe 0000                      	nop
-0000ff 9ac0                      	sbi PORTB, PIN_LED
-000100 0000                      	nop
-000101 98c0                      	cbi PORTB, PIN_LED
-000102 0000                      	nop
-000103 0000                      	nop
-000104 0000                      	nop
-000105 9ac0                      	sbi PORTB, PIN_LED
-000106 0000                      	nop
-000107 98c0                      	cbi PORTB, PIN_LED
-000108 0000                      	nop
-000109 0000                      	nop
-00010a 0000                      	nop
-00010b 9ac0                      	sbi PORTB, PIN_LED
-00010c 0000                      	nop
-00010d 98c0                      	cbi PORTB, PIN_LED
-00010e 0000                      	nop
-00010f 0000                      	nop
-000110 0000                      	nop
-000111 9ac0                      	sbi PORTB, PIN_LED
-000112 0000                      	nop
-000113 98c0                      	cbi PORTB, PIN_LED
-000114 0000                      	nop
-000115 0000                      	nop
-000116 0000                      	nop
-000117 9508                      	ret
+0000b4 9ac0                      	sbi PORTB, PIN_LED
+0000b5 0000                      	nop
+0000b6 0000                      	nop
+0000b7 0000                      	nop
+0000b8 98c0                      	cbi PORTB, PIN_LED
+0000b9 0000                      	nop
+0000ba 9ac0                      	sbi PORTB, PIN_LED
+0000bb 0000                      	nop
+0000bc 98c0                      	cbi PORTB, PIN_LED
+0000bd 0000                      	nop
+0000be 0000                      	nop
+0000bf 0000                      	nop
+0000c0 9ac0                      	sbi PORTB, PIN_LED
+0000c1 0000                      	nop
+0000c2 98c0                      	cbi PORTB, PIN_LED
+0000c3 0000                      	nop
+0000c4 0000                      	nop
+0000c5 0000                      	nop
+0000c6 9ac0                      	sbi PORTB, PIN_LED
+0000c7 0000                      	nop
+0000c8 98c0                      	cbi PORTB, PIN_LED
+0000c9 0000                      	nop
+0000ca 0000                      	nop
+0000cb 0000                      	nop
+0000cc 9ac0                      	sbi PORTB, PIN_LED
+0000cd 0000                      	nop
+0000ce 98c0                      	cbi PORTB, PIN_LED
+0000cf 0000                      	nop
+0000d0 0000                      	nop
+0000d1 0000                      	nop
+0000d2 9ac0                      	sbi PORTB, PIN_LED
+0000d3 0000                      	nop
+0000d4 98c0                      	cbi PORTB, PIN_LED
+0000d5 0000                      	nop
+0000d6 0000                      	nop
+0000d7 0000                      	nop
+0000d8 9ac0                      	sbi PORTB, PIN_LED
+0000d9 0000                      	nop
+0000da 98c0                      	cbi PORTB, PIN_LED
+0000db 0000                      	nop
+0000dc 0000                      	nop
+0000dd 0000                      	nop
+0000de 9ac0                      	sbi PORTB, PIN_LED
+0000df 0000                      	nop
+0000e0 98c0                      	cbi PORTB, PIN_LED
+0000e1 0000                      	nop
+0000e2 0000                      	nop
+0000e3 0000                      	nop
+0000e4 9508                      	ret
                                  	
                                  ; preset colors for debug
                                  #ifdef DEBUG	
                                  debug_off:
-000118 9200 007e                 	sts byteR, z0
-00011a 9200 007f                 	sts byteG, z0
-00011c 9200 0080                 	sts byteB, z0
-00011e cfaf                      	rjmp sendColor
+0000e5 9200 0068                 	sts byteR, z0
+0000e7 9200 0069                 	sts byteG, z0
+0000e9 9200 006a                 	sts byteB, z0
+0000eb cfae                      	rjmp sendColor
                                  
                                  debug_red:
-00011f ef0f                      	ldi tmp, 255
-000120 9300 007e                 	sts byteR, tmp
-000122 9200 007f                 	sts byteG, z0
-000124 9200 0080                 	sts byteB, z0
-000126 cfa7                      	rjmp sendColor
+0000ec ef0f                      	ldi tmp, 255
+0000ed 9300 0068                 	sts byteR, tmp
+0000ef 9200 0069                 	sts byteG, z0
+0000f1 9200 006a                 	sts byteB, z0
+0000f3 cfa6                      	rjmp sendColor
                                  
                                  debug_green:
-000127 ec08                      	ldi tmp, 200
-000128 9300 007e                 	sts byteR, tmp
-00012a 9300 007f                 	sts byteG, tmp
-00012c 9200 0080                 	sts byteB, z0
-00012e cf9f                      	rjmp sendColor
+0000f4 e001                      	ldi tmp, 1
+0000f5 9300 0068                 	sts byteR, tmp
+0000f7 9300 0069                 	sts byteG, tmp
+0000f9 9200 006a                 	sts byteB, z0
+0000fb cf9e                      	rjmp sendColor
                                  
                                  debug_blue:
-00012f ef0f                      	ldi tmp, 255
-000130 9200 007e                 	sts byteR, z0
-000132 9200 007f                 	sts byteG, z0
-000134 9300 0080                 	sts byteB, tmp
-000136 cf97                      	rjmp sendColor
+0000fc ef0f                      	ldi tmp, 255
+0000fd 9200 0068                 	sts byteR, z0
+0000ff 9200 0069                 	sts byteG, z0
+000101 9300 006a                 	sts byteB, tmp
+000103 cf96                      	rjmp sendColor
                                  
                                  debug_white:
-000137 ef0f                      	ldi tmp, 255
-000138 9300 007e                 	sts byteR, tmp
-00013a 9300 007f                 	sts byteG, tmp
-00013c 9300 0080                 	sts byteB, tmp
-00013e cf8f                      	rjmp sendColor
+000104 ef0f                      	ldi tmp, 255
+000105 9300 0068                 	sts byteR, tmp
+000107 9300 0069                 	sts byteG, tmp
+000109 9300 006a                 	sts byteB, tmp
+00010b cf8e                      	rjmp sendColor
                                  
                                  debug_violet:
-00013f ef0f                      	ldi tmp, 255
-000140 9300 007e                 	sts byteR, tmp
-000142 9200 007f                 	sts byteG, z0
-000144 9300 0080                 	sts byteB, tmp
-000146 cf87                      	rjmp sendColor
+00010c ef0f                      	ldi tmp, 255
+00010d 9300 0068                 	sts byteR, tmp
+00010f 9200 0069                 	sts byteG, z0
+000111 9300 006a                 	sts byteB, tmp
+000113 cf86                      	rjmp sendColor
                                  
                                  debug_yellow:
-000147 e604                      	ldi tmp, 100
-000148 9300 007e                 	sts byteR, tmp
-00014a 9300 007f                 	sts byteG, tmp
-00014c 9200 0080                 	sts byteB, z0
-00014e cf7f                      	rjmp sendColor
+000114 e604                      	ldi tmp, 100
+000115 9300 0068                 	sts byteR, tmp
+000117 9300 0069                 	sts byteG, tmp
+000119 9200 006a                 	sts byteB, z0
+00011b cf7e                      	rjmp sendColor
                                  
                                  debug_cyan:
-00014f ef0f                      	ldi tmp, 255
-000150 9200 007e                 	sts byteR, z0
-000152 9300 007f                 	sts byteG, tmp
-000154 9300 0080                 	sts byteB, tmp
-000156 cf77                      	rjmp sendColor
+00011c ef0f                      	ldi tmp, 255
+00011d 9200 0068                 	sts byteR, z0
+00011f 9300 0069                 	sts byteG, tmp
+000121 9300 006a                 	sts byteB, tmp
+000123 cf76                      	rjmp sendColor
                                  
                                  #endif
                                  
@@ -1369,149 +1296,142 @@ C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm(99): Including file '
                                  ; Convert ADC RAW voltage to real voltage
                                  Convert_VoltageADC_to_Volt:
                                  	#ifdef MOVINGAVERAGE
-000157 e6e8                      		ldi ZL, LOW(M_AVERAGE_voltage_COUNTER)
-000158 e0f0                      		ldi ZH, HIGH(M_AVERAGE_voltage_COUNTER)
-000159 df0b                      		rcall moving_average
                                  	#endif
                                  	; Value is ready for converting to Volts (actually V*100 eg 1200 = 12.00V)
                                  	; The formula is: ADC * 64 / VOLT_DIV_CONST
-00015a e006                      	ldi tmp, 6
+000124 e006                      	ldi tmp, 6
                                  mult32:
-00015b 0c33                      	lsl tmp2
-00015c 1c44                      	rol tmp3
-00015d 950a                      	dec tmp
-00015e f7e1                      	brne mult32
+000125 0c33                      	lsl tmp2
+000126 1c44                      	rol tmp3
+000127 950a                      	dec tmp
+000128 f7e1                      	brne mult32
                                  	; divide it by a constant
-00015f 2c83                      	mov tmpL1, tmp2
-000160 2c94                      	mov tmpH1, tmp3
-000161 e107                      	ldi tmp, VOLT_DIV_CONST
-000162 2ea0                      	mov tmpL2, tmp
-000163 24bb                      	clr tmpH2
-000164 df20                      	rcall div16u	; result in tmpH1:tmpL1 (actually only low byte)
-000165 9280 0063                 	sts Voltage_Measured, tmpL1
-000167 9290 0064                 	sts Voltage_Measured+1, tmpH1
+000129 2c83                      	mov tmpL1, tmp2
+00012a 2c94                      	mov tmpH1, tmp3
+00012b e107                      	ldi tmp, VOLT_DIV_CONST
+00012c 2ea0                      	mov tmpL2, tmp
+00012d 24bb                      	clr tmpH2
+00012e df22                      	rcall div16u	; result in tmpH1:tmpL1 (actually only low byte)
+00012f 9280 0063                 	sts Voltage_Measured, tmpL1
+000131 9290 0064                 	sts Voltage_Measured+1, tmpH1
                                  convert_V_exit:
-000169 9508                      	ret
+000133 9508                      	ret
                                  
                                  ; Convert ADC RAW current to real current
                                  Convert_CurrentADC_to_Current:
                                  	#ifdef MOVINGAVERAGE
-00016a e7e3                      		ldi ZL, LOW(M_AVERAGE_current_COUNTER)
-00016b e0f0                      		ldi ZH, HIGH(M_AVERAGE_current_COUNTER)
-00016c def8                      		rcall moving_average
                                  	#endif
                                  	; Value is ready for converting to Current (actually C*10 eg 55 = 5.5A)
                                  	; ADC_Current_zero_RAW - reference for 0.0A
                                  	; The formula is: (ADC-ADC_Current_zero_RAW)*64/CURRENT_DIV_CONST
-00016d 9080 0066                 	lds tmpL1, ADC_Current_zero_RAW
-00016f 9090 0067                 	lds tmpH1, ADC_Current_zero_RAW+1
-000171 1838                      	sub tmp2, tmpL1
-000172 0849                      	sbc tmp3, tmpH1
-000173 f410                      	brcc convert_C_notminus
-000174 2c38                      	mov tmp2, tmpL1	; if minus, then 0
-000175 2c49                      	mov tmp3, tmpH1	; if minus, then 0
+000134 9080 0066                 	lds tmpL1, ADC_Current_zero_RAW
+000136 9090 0067                 	lds tmpH1, ADC_Current_zero_RAW+1
+000138 1838                      	sub tmp2, tmpL1
+000139 0849                      	sbc tmp3, tmpH1
+00013a f410                      	brcc convert_C_notminus
+00013b 2c38                      	mov tmp2, tmpL1	; if minus, then 0
+00013c 2c49                      	mov tmp3, tmpH1	; if minus, then 0
                                  convert_C_notminus:
-000176 e006                      	ldi tmp, 6
+00013d e006                      	ldi tmp, 6
                                  mult64:
-000177 0c33                      	lsl tmp2
-000178 1c44                      	rol tmp3
-000179 950a                      	dec tmp
-00017a f7e1                      	brne mult64
+00013e 0c33                      	lsl tmp2
+00013f 1c44                      	rol tmp3
+000140 950a                      	dec tmp
+000141 f7e1                      	brne mult64
                                  	; divide it by a constant
-00017b 2c83                      	mov tmpL1, tmp2
-00017c 2c94                      	mov tmpH1, tmp3
-00017d ef02                      	ldi tmp, CURRENT_DIV_CONST
-00017e 2ea0                      	mov tmpL2, tmp
-00017f 24bb                      	clr tmpH2
-000180 df04                      	rcall div16u	; result in tmpH1:tmpL1 (actually only low byte)
-000181 9280 0065                 	sts Current_Measured, tmpL1
+000142 2c83                      	mov tmpL1, tmp2
+000143 2c94                      	mov tmpH1, tmp3
+000144 ef02                      	ldi tmp, CURRENT_DIV_CONST
+000145 2ea0                      	mov tmpL2, tmp
+000146 24bb                      	clr tmpH2
+000147 df09                      	rcall div16u	; result in tmpH1:tmpL1 (actually only low byte)
+000148 9280 0065                 	sts Current_Measured, tmpL1
                                  convert_C_exit:
-000183 9508                      	ret
+00014a 9508                      	ret
                                  	
                                  ; The routine checks measured voltage and compare it to the desired voltage (setVolt_tmp)
                                  ; Need to see, how it is better to check voltage, by filtered RAW value or calculated V*10?
                                  Regulate_PWM:
                                  	; check flag PWM_flag_regulatePWM
-000184 ff67                      	sbrs PWM_flags, PWM_flag_regulatePWM
-000185 c00b                      	rjmp Regulate_PWM_exit
-000186 776f                      	cbr PWM_flags, (1<<PWM_flag_regulatePWM)	; clear flag
-000187 b51e                      	in tmp1, OCR1A	; read current PWM
+00014b ff67                      	sbrs PWM_flags, PWM_flag_regulatePWM
+00014c c00b                      	rjmp Regulate_PWM_exit
+00014d 776f                      	cbr PWM_flags, (1<<PWM_flag_regulatePWM)	; clear flag
+00014e b51e                      	in tmp1, OCR1A	; read current PWM
                                  	; compare voltages
                                  	; TODO votage now is 2 byte value
-000188 9100 0063                 	lds tmp, Voltage_Measured	
-00018a 150c                      	cp tmp, setVolt_tmp
-00018b f029                      	breq Regulate_PWM_exit	; No need to change
-00018c f428                      	brsh Regulate_PWM_minus ; need to decrease PWM
+00014f 9100 0063                 	lds tmp, Voltage_Measured	
+000151 150c                      	cp tmp, setVolt_tmp
+000152 f029                      	breq Regulate_PWM_exit	; No need to change
+000153 f428                      	brsh Regulate_PWM_minus ; need to decrease PWM
                                  	; need to increase PWM
                                  	; check that we not at max already
-00018d 3f1f                      	cpi tmp1, 255
-00018e f011                      	breq Regulate_PWM_exit
-00018f 9513                      	inc tmp1
+000154 3f1f                      	cpi tmp1, 255
+000155 f011                      	breq Regulate_PWM_exit
+000156 9513                      	inc tmp1
                                  Regulate_PWM_update:
-000190 bd1e                      	out OCR1A, tmp1
+000157 bd1e                      	out OCR1A, tmp1
                                  Regulate_PWM_exit:
-000191 9508                      	ret
+000158 9508                      	ret
                                  Regulate_PWM_minus:
                                  	; check that we not at min already
-000192 3010                      	cpi tmp1, 0
-000193 f3e9                      	breq Regulate_PWM_exit
-000194 951a                      	dec tmp1
-000195 cffa                      
+000159 3010                      	cpi tmp1, 0
+00015a f3e9                      	breq Regulate_PWM_exit
+00015b 951a                      	dec tmp1
+00015c cffa                      
                                  RESET:
-000196 94f8                      	cli
-000197 9aba                      	sbi DDRB, PB2
-000198 9ac2                      	sbi PORTB, PB2
-000199 9ab8                      	sbi DDRB, PIN_LED
+00015d 94f8                      	cli
+00015e 9aba                      	sbi DDRB, PB2
+00015f 9ac2                      	sbi PORTB, PB2
+000160 9ab8                      	sbi DDRB, PIN_LED
                                  
                                  	;initialize constants
-00019a 2400                      	clr z0
-00019b 2411                      	clr z1
-00019c 9413                      	inc z1
+000161 2400                      	clr z0
+000162 2411                      	clr z1
+000163 9413                      	inc z1
                                  	
-00019d 2755                      	clr Voltage_Set	; At the beginning it is always 0.
+000164 2755                      	clr Voltage_Set	; At the beginning it is always 0.
                                  	
-00019e e800                      	ldi tmp, 1<<CLKPCE	
-00019f bd06                      	out CLKPR, tmp		; enable clock change
-0001a0 bc06                      	out CLKPR, z0		; prescaler 1
+000165 e800                      	ldi tmp, 1<<CLKPCE	
+000166 bd06                      	out CLKPR, tmp		; enable clock change
+000167 bc06                      	out CLKPR, z0		; prescaler 1
                                  
-0001a1 e002                      	ldi tmp, high(RAMEND) 
-0001a2 bf0e                      	out SPH,tmp				; Set Stack Pointer to top of RAM
-0001a3 e50f                      	ldi tmp, low(RAMEND)
-0001a4 bf0d                      	out SPL,tmp				; Set Stack Pointer to top of RAM
+000168 e002                      	ldi tmp, high(RAMEND) 
+000169 bf0e                      	out SPH,tmp				; Set Stack Pointer to top of RAM
+00016a e50f                      	ldi tmp, low(RAMEND)
+00016b bf0d                      	out SPL,tmp				; Set Stack Pointer to top of RAM
                                  
                                  	;rcall EEPROM_restoreSettings
                                  
-0001a5 de69                      	rcall init_PWM	; Initialize FET controlling with PWM
+00016c dea2                      	rcall init_PWM	; Initialize FET controlling with PWM
                                  	#ifdef MOVINGAVERAGE
-0001a6 deb8                      		rcall init_Moving_Average
                                  	#endif
-0001a7 de91                      	rcall init_ADC			; Initialize V and I measuring
-0001a8 def6                      	rcall init_Scheduler	; Initialize scheduler for smooth change to desired voltage
+00016d decb                      	rcall init_ADC			; Initialize V and I measuring
+00016e defc                      	rcall init_Scheduler	; Initialize scheduler for smooth change to desired voltage
                                  
                                  
                                  	; this call should be the last before enabling interrupts and entering main loop
-0001a9 df0c                      	rcall Scheduler_start	
+00016f df12                      	rcall Scheduler_start	
                                  
-0001aa 9a36                      	sbi ADCSRA, ADSC
+000170 9a36                      	sbi ADCSRA, ADSC
                                  	
-0001ab 9478                      	sei
+000171 9478                      	sei
                                  	
                                  	#ifdef DEBUG
                                  		;rcall debug_green
-0001ac df6b                      		rcall debug_off
+000172 df72                      		rcall debug_off
                                  		;rcall debug_yellow
                                  	#endif
                                  	; set LED color to GREEN
                                  	
                                  loop:
                                  	; wait for ADC complete
-0001ad 9936                      	sbic ADCSRA, ADSC
-0001ae cffe                      	rjmp loop
-0001af de6e                      	rcall ADC_Read
+000173 9936                      	sbic ADCSRA, ADSC
+000174 cffe                      	rjmp loop
+000175 dea8                      	rcall ADC_Read
                                  
-0001b0 dfd3                      	rcall Regulate_PWM
+000176 dfd4                      	rcall Regulate_PWM
                                  	
-0001b1 cffb                      	rjmp loop
+000177 cffb                      	rjmp loop
 
 
 RESOURCE USE INFORMATION
@@ -1529,39 +1449,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATtiny85" register use summary:
-x  :   0 y  :   0 z  :   6 r0 :  20 r1 :   3 r2 :   5 r3 :  20 r4 :  21 
-r5 :   1 r6 :   0 r7 :   0 r8 :  14 r9 :  12 r10:   8 r11:   8 r12:   6 
-r13:   3 r14:   3 r15:   0 r16:  94 r17:   9 r18:   0 r19:   0 r20:   9 
+x  :   0 y  :   0 z  :   0 r0 :  17 r1 :   3 r2 :   5 r3 :  16 r4 :  17 
+r5 :   1 r6 :   0 r7 :   0 r8 :  11 r9 :   9 r10:   7 r11:   7 r12:   6 
+r13:   3 r14:   3 r15:   0 r16:  82 r17:   9 r18:   0 r19:   0 r20:   9 
 r21:   3 r22:   4 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   9 r31:   9 
-Registers used: 21 out of 35 (60.0%)
+r29:   0 r30:   0 r31:   0 
+Registers used: 18 out of 35 (51.4%)
 
 "ATtiny85" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   4 add   :   4 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   2 add   :   2 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   3 brcs  :   1 break :   0 breq  :   7 brge  :   0 brhc  :   0 
+brcc  :   4 brcs  :   0 break :   0 breq  :   7 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   3 brlt  :   0 brmi  :   0 
-brne  :  10 brpl  :   0 brsh  :   1 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 cbi   :  14 cbr   :   1 clc   :   1 
-clh   :   0 cli   :   4 cln   :   0 clr   :  14 cls   :   0 clt   :   0 
-clv   :   0 clz   :   0 com   :   0 cp    :   3 cpc   :   1 cpi   :   9 
-cpse  :   1 dec   :  10 eor   :   0 icall :   0 ijmp  :   0 in    :   7 
-inc   :   5 ld    :   3 ldd   :   0 ldi   :  44 lds   :   6 lpm   :   0 
-lsl   :   5 lsr   :   1 mov   :  20 movw  :   0 neg   :   0 nop   :  35 
-or    :   0 ori   :   0 out   :  26 pop   :   5 push  :   5 rcall :  20 
-ret   :  14 reti  :  17 rjmp  :  22 rol   :   6 ror   :   1 sbc   :   2 
-sbci  :   0 sbi   :  18 sbic  :   2 sbis  :   0 sbiw  :   0 sbr   :   1 
+brne  :   8 brpl  :   0 brsh  :   1 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 cbi   :  13 cbr   :   1 clc   :   1 
+clh   :   0 cli   :   3 cln   :   0 clr   :  10 cls   :   0 clt   :   0 
+clv   :   0 clz   :   0 com   :   0 cp    :   3 cpc   :   1 cpi   :   8 
+cpse  :   1 dec   :   9 eor   :   0 icall :   0 ijmp  :   0 in    :   7 
+inc   :   4 ld    :   0 ldd   :   0 ldi   :  37 lds   :   4 lpm   :   0 
+lsl   :   4 lsr   :   1 mov   :  16 movw  :   0 neg   :   0 nop   :  37 
+or    :   0 ori   :   0 out   :  28 pop   :   0 push  :   0 rcall :  13 
+ret   :  11 reti  :  17 rjmp  :  22 rol   :   6 ror   :   1 sbc   :   2 
+sbci  :   0 sbi   :  17 sbic  :   2 sbis  :   0 sbiw  :   0 sbr   :   1 
 sbrc  :   0 sbrs  :   2 sec   :   1 seh   :   0 sei   :   1 sen   :   0 
 ser   :   0 ses   :   0 set   :   0 sev   :   0 sez   :   0 sleep :   0 
-spm   :   0 st    :   3 std   :   0 sts   :  31 sub   :   3 subi  :   0 
+spm   :   0 st    :   0 std   :   0 sts   :  29 sub   :   3 subi  :   0 
 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 46 out of 105 (43.8%)
+Instructions used: 41 out of 105 (39.0%)
 
 "ATtiny85" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000364    868      0    868    8192  10.6%
-[.dseg] 0x000060 0x000081      0     33     33     512   6.4%
+[.cseg] 0x000000 0x0002f0    752      0    752    8192   9.2%
+[.dseg] 0x000060 0x00006b      0     11     11     512   2.1%
 [.eseg] 0x000000 0x000000      0      0      0     512   0.0%
 
 Assembly complete, 0 errors, 0 warnings

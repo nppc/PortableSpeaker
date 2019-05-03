@@ -1,12 +1,15 @@
 ; send 3 bytes of data GRB (high first)
 sendColor:
+	cbi PORTB, PIN_LED ; make sure it LOW
+	ldi tmp1, 1<<PIN_LED
 	ldi tmp, 8			; bits per byte
 	mov tmp2,tmp		; counter for G
 	mov tmp3,tmp		; counter for R
 	mov tmp4,tmp		; counter for B
 	cli
 	; send G color
-	lds tmp, byteG		;0.250us
+	;lds tmp, byteG		;0.250us
+	ldi tmp, 200
 loop_G:
 	lsl tmp				; shift bit to C flag
 	; clear or set bit according to flag C
@@ -20,16 +23,20 @@ skpnopG:
 	brne loop_G			;0.125us
 
 	; send R color
-	lds tmp, byteR		;0.250us
+	;lds tmp, byteR		;0.250us
+	ldi tmp, 0
 loop_R:
 	lsl tmp				; shift bit to C flag
 	; clear or set bit according to flag C
-	sbi PORTB, PIN_LED 	;0.250us - HIGH
-	brcs skpnopR		;0.125us
-	cbi PORTB, PIN_LED 	;0.250us - LOW
-skpnopR:
+	out PINB, tmp1		;0.125us - toggle HIGH
+	;sbi PORTB, PIN_LED 	;0.250us - HIGH
+	brcc skpnopR		;0.125us
 	nop
-	cbi PORTB, PIN_LED 	;0.250us - LOW
+	nop
+	nop
+skpnopR:
+	out PINB, tmp1		;0.125us - toggle LOW
+	;cbi PORTB, PIN_LED 	;0.250us - LOW
 	dec tmp3			;0.125us
 	brne loop_R			;0.125us
 
@@ -113,7 +120,7 @@ debug_red:
 	rjmp sendColor
 
 debug_green:
-	ldi tmp, 200
+	ldi tmp, 1
 	sts byteR, tmp
 	sts byteG, tmp
 	sts byteB, z0

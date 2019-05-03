@@ -35,10 +35,6 @@
   <Voltage_Measured><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>57</LINE></Voltage_Measured>
   <Current_Measured><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>58</LINE></Current_Measured>
   <ADC_Current_zero_RAW><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>59</LINE></ADC_Current_zero_RAW>
-  <M_AVERAGE_voltage_COUNTER><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>61</LINE></M_AVERAGE_voltage_COUNTER>
-  <M_AVERAGE_voltage_TABLE><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>62</LINE></M_AVERAGE_voltage_TABLE>
-  <M_AVERAGE_current_COUNTER><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>63</LINE></M_AVERAGE_current_COUNTER>
-  <M_AVERAGE_current_TABLE><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>64</LINE></M_AVERAGE_current_TABLE>
   <byteR><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>67</LINE></byteR>
   <byteG><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>68</LINE></byteG>
   <byteB><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.asm</FILE><LINE>69</LINE></byteB>
@@ -55,13 +51,8 @@
   <Convert_VoltageADC_to_Volt><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.inc</FILE><LINE>6</LINE></Convert_VoltageADC_to_Volt>
   <Convert_CurrentADC_to_Current><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.inc</FILE><LINE>33</LINE></Convert_CurrentADC_to_Current>
   <init_ADC><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ADC.inc</FILE><LINE>74</LINE></init_ADC>
-  <init_ADC_array><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ADC.inc</FILE><LINE>132</LINE></init_ADC_array>
-  <init_ADC_loop><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ADC.inc</FILE><LINE>134</LINE></init_ADC_loop>
-  <waitforADC><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ADC.inc</FILE><LINE>141</LINE></waitforADC>
-  <moving_average><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\MovAverage.inc</FILE><LINE>15</LINE></moving_average>
-  <init_Moving_Average><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\MovAverage.inc</FILE><LINE>4</LINE></init_Moving_Average>
-  <mov_avrg_skp><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\MovAverage.inc</FILE><LINE>33</LINE></mov_avrg_skp>
-  <mov_avrg_loop><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\MovAverage.inc</FILE><LINE>42</LINE></mov_avrg_loop>
+  <waitforADC_Ref_L1><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ADC.inc</FILE><LINE>100</LINE></waitforADC_Ref_L1>
+  <waitforADC_Ref><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ADC.inc</FILE><LINE>103</LINE></waitforADC_Ref>
   <div16u><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\math.inc</FILE><LINE>17</LINE></div16u>
   <d16u_1><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\math.inc</FILE><LINE>20</LINE></d16u_1>
   <d16u_2><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\math.inc</FILE><LINE>37</LINE></d16u_2>
@@ -74,19 +65,19 @@
   <TMR0_changeVolt_adjust><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\scheduler.inc</FILE><LINE>63</LINE></TMR0_changeVolt_adjust>
   <TMR0_changeVolt_adjust_inc><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\scheduler.inc</FILE><LINE>69</LINE></TMR0_changeVolt_adjust_inc>
   <sendColor><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>2</LINE></sendColor>
-  <loop_G><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>10</LINE></loop_G>
-  <skpnopG><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>17</LINE></skpnopG>
-  <loop_R><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>24</LINE></loop_R>
-  <skpnopR><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>30</LINE></skpnopR>
-  <loop_B><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>38</LINE></loop_B>
-  <debug_off><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>102</LINE></debug_off>
-  <debug_red><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>108</LINE></debug_red>
-  <debug_green><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>115</LINE></debug_green>
-  <debug_blue><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>122</LINE></debug_blue>
-  <debug_white><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>129</LINE></debug_white>
-  <debug_violet><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>136</LINE></debug_violet>
-  <debug_yellow><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>143</LINE></debug_yellow>
-  <debug_cyan><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>150</LINE></debug_cyan>
+  <loop_G><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>13</LINE></loop_G>
+  <skpnopG><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>20</LINE></skpnopG>
+  <loop_R><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>28</LINE></loop_R>
+  <skpnopR><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>37</LINE></skpnopR>
+  <loop_B><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>45</LINE></loop_B>
+  <debug_off><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>109</LINE></debug_off>
+  <debug_red><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>115</LINE></debug_red>
+  <debug_green><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>122</LINE></debug_green>
+  <debug_blue><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>129</LINE></debug_blue>
+  <debug_white><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>136</LINE></debug_white>
+  <debug_violet><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>143</LINE></debug_violet>
+  <debug_yellow><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>150</LINE></debug_yellow>
+  <debug_cyan><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\ws2812b.inc</FILE><LINE>157</LINE></debug_cyan>
   <mult32><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.inc</FILE><LINE>15</LINE></mult32>
   <convert_V_exit><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.inc</FILE><LINE>29</LINE></convert_V_exit>
   <convert_C_notminus><FILE>C:\src\Tennp\Git\PortableSpeaker\Firmware\Charger\main.inc</FILE><LINE>49</LINE></convert_C_notminus>
