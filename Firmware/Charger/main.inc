@@ -3,15 +3,16 @@
 .EQU	PWM_flag_regulatePWM = 7
 
 ; Convert ADC RAW voltage to real voltage
+; Remember, that raw ADC is multiplied by 2!
 Convert_VoltageADC_to_Volt:
 	#ifdef MOVINGAVERAGE
 		ldi ZL, LOW(M_AVERAGE_voltage_COUNTER)
 		ldi ZH, HIGH(M_AVERAGE_voltage_COUNTER)
 		rcall moving_average
 	#endif
-	; Value is ready for converting to Volts (actually V*100 eg 1200 = 12.00V)
-	; The formula is: ADC * 64 / VOLT_DIV_CONST
-	ldi tmp, 6
+	; Value is ready for converting to Volts (actually mV*10 eg 1200 = 12.00V)
+	; The formula is: ADC * 64 / 2 / VOLT_DIV_CONST
+	ldi tmp, 5
 mult32:
 	lsl tmp2
 	rol tmp3
@@ -30,23 +31,34 @@ convert_V_exit:
 	ret
 
 ; Convert ADC RAW current to real current
+; Remember, that raw ADC is multiplied by 2!
 Convert_CurrentADC_to_Current:
 	#ifdef MOVINGAVERAGE
 		ldi ZL, LOW(M_AVERAGE_current_COUNTER)
 		ldi ZH, HIGH(M_AVERAGE_current_COUNTER)
 		rcall moving_average
 	#endif
-	; Value is ready for converting to Current (actually C*10 eg 55 = 5.5A)
+	; Value is ready for converting to Current (actually mA*10 eg 550 = 5.5A)
 	; ADC_Current_zero_RAW - reference for 0.0A
-	; The formula is: (ADC-ADC_Current_zero_RAW)*64/CURRENT_DIV_CONST
+	; The formula is: (ADC-ADC_Current_zero_RAW)*(4/2)*32/CURRENT_DIV_CONST
 	lds tmpL1, ADC_Current_zero_RAW
 	lds tmpH1, ADC_Current_zero_RAW+1
 	sub tmp2, tmpL1
 	sbc tmp3, tmpH1
 	brcc convert_C_notminus
-	mov tmp2, tmpL1	; if minus, then 0
-	mov tmp3, tmpH1	; if minus, then 0
+	clr tmp2	; if minus, then 0
+	clr tmp3	; if minus, then 0
 convert_C_notminus:
+	; Result should be lower than 1024, otherwise it will overflow
+	ldi tmp, high(1024)
+	cp tmp2, z0
+	cpc tmp3, tmp
+	brlo convert_C_nooverflow
+	ldi tmp, low(1023)
+	mov tmp2, tmp
+	ldi tmp, high(1023)
+	mov tmp3, tmp
+convert_C_nooverflow:
 	ldi tmp, 6
 mult64:
 	lsl tmp2
@@ -59,11 +71,13 @@ mult64:
 	ldi tmp, CURRENT_DIV_CONST
 	mov tmpL2, tmp
 	clr tmpH2
-	rcall div16u	; result in tmpH1:tmpL1 (actually only low byte)
+	rcall div16u	; result in tmpH1:tmpL1
 	sts Current_Measured, tmpL1
+	sts Current_Measured+1, tmpH1
 convert_C_exit:
 	ret
-	
+
+; ***** TODO *****
 ; The routine checks measured voltage and compare it to the desired voltage (setVolt_tmp)
 ; Need to see, how it is better to check voltage, by filtered RAW value or calculated V*10?
 Regulate_PWM:

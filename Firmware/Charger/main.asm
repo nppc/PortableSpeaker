@@ -51,11 +51,11 @@
 ;USI_buffer_updateStatus:	.BYTE 1	; 1 - Buffer updated with new data, 0 - data is read by main loop
 ; Variables (R/W)
 Voltage_Change:				.BYTE 1 ; (V*10). Before using this variable, we need to convert it for timer0 counter
-Voltage_Min:				.BYTE 1 ; (V*10)
-Voltage_Max:				.BYTE 1 ; (V*10)
+Voltage_Min:				.BYTE 2 ; (mV*10)
+Voltage_Max:				.BYTE 2 ; (mV*10)
 ; Variables (R)
-Voltage_Measured:			.BYTE 2 ; (V*100)
-Current_Measured:			.BYTE 1 ; (C*10)
+Voltage_Measured:			.BYTE 2 ; (mV*10)
+Current_Measured:			.BYTE 2 ; (mA*10)
 ADC_Current_zero_RAW:		.BYTE 2	; ADC value when no load (0.0A)
 #ifdef MOVINGAVERAGE
 M_AVERAGE_voltage_COUNTER:	.BYTE 1	 ; Counter in the table

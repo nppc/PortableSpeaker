@@ -9,7 +9,7 @@ init_Moving_Average:
 
 
 ; smooth data via moving average algorithm
-; store/read 10 bit value to the Moving Average array
+; store/read 11 bit value to the Moving Average array
 ; value is in tmp2:tmp3 
 ; Z points to the array of data (Counter and averaging data)
 moving_average:
