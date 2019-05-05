@@ -1,4 +1,7 @@
 #include "i2c.c"
+#include <Wire.h>
+#include <U8g2lib.h>
+
 
 // for encoder readings use bitRead for speed.
 // this requires to use AVR original pin numbers
@@ -17,6 +20,7 @@
 #define MAIN_ENCODER	0
 #define INPUT_ENCODER	1
 
+U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
 /***********
  * SubAddress:
@@ -66,6 +70,8 @@ unsigned long encoder1millis = 0;
 void setup() {
 	I2CInit();
 	Serial.begin(115200);
+  u8g2.begin();
+  u8g2.setFlipMode(0);
 /*
 	bitClear(DDRD, encoder0PinA);
 	bitSet(PORTD, encoder0PinA);
