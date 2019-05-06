@@ -66,26 +66,38 @@ volatile char encoder1Pos = 0;
 volatile byte encoder1Change = 0;
 unsigned long encoder1millis = 0;
 
+void doEncoder0() {
+    // If interrupts come faster than 5ms, assume it's a bounce and ignore
+    if (millis() - encoder0millis > 5) {
+        if (!bitRead(PIND,encoder0PinB))
+            encoder0Pos++;
+        else
+            encoder0Pos--;
+        }
+    encoder0millis = millis();
+  // here is code to process encoder change...
+  encoder0Change = 1;
+}
+
+void doEncoder1() {
+    // If interrupts come faster than 5ms, assume it's a bounce and ignore
+    if (millis() - encoder1millis > 5) {
+        if (!bitRead(PIND,encoder1PinB))
+            encoder1Pos++;
+        else
+            encoder1Pos--;
+        }
+    encoder1millis = millis();
+  // here is code to process encoder change...
+  encoder1Change = 1;
+}
 
 void setup() {
 	I2CInit();
 	Serial.begin(115200);
   u8g2.begin();
   u8g2.setFlipMode(0);
-/*
-	bitClear(DDRD, encoder0PinA);
-	bitSet(PORTD, encoder0PinA);
-	bitClear(DDRD, encoder1PinA);
-	bitSet(PORTD, encoder1PinA);
-	bitClear(DDRD, encoder0PinB);
-	bitSet(PORTD, encoder0PinB);
-	bitClear(DDRD, encoder1PinB);
-	bitSet(PORTD, encoder1PinB);
-	bitClear(DDRD, BUTTON0_PIN);
-	bitSet(PORTD, BUTTON0_PIN);
-	bitClear(DDRD, BUTTON1_PIN);
-	bitSet(PORTD, BUTTON1_PIN);
-*/
+
 	pinMode(encoder0PinA, INPUT_PULLUP); 
 	pinMode(encoder0PinB, INPUT_PULLUP); 
 	pinMode(encoder1PinA, INPUT_PULLUP); 
@@ -96,7 +108,6 @@ void setup() {
 	attachInterrupt(0, doEncoder0, FALLING);  // encoder pin on interrupt 0 - pin 2
 	attachInterrupt(1, doEncoder1, FALLING);  // encoder pin on interrupt 1 - pin 3
 
-	
 	I2CStart(I2C_ADDR);
 	I2CWriteByte(VOLUME);
 	I2CWriteByte(VOLUME_MUTE); // direct dB representation (0-40)
@@ -109,6 +120,7 @@ void setup() {
 	I2CStop();      
 	delay(2);
 
+/*
 	// smooth volume up to 50%
 	for(byte i=0;i<20;i++){
 		I2CStart(I2C_ADDR);
@@ -117,9 +129,31 @@ void setup() {
 		I2CStop();      
 		delay(100);
 	}
+*/
+  u8g2.firstPage();
+  do {
+    u8g2.setFont(u8g2_font_fub17_tr);
+    u8g2.drawStr(0,17,"Treble");
+  } while (u8g2.nextPage());
 }
 
+int i=0; int dir=1;
 void loop() {
+  u8g2.firstPage();
+  u8g2.setBufferCurrTileRow(3);
+  for(byte b=0;b<3;b++){
+//  do {
+    //u8g2.setFont(u8g2_font_fub17_tr);
+    //u8g2.drawStr(0,17,"Treble");
+    tembreBar(i);
+    u8g2.nextPage();
+  }
+//  } while ( u8g2.nextPage() );
+  if(i==0){delay(1000);}
+  i=i+dir;
+  if(i>14 || i<-14){dir=-dir; i=i+dir;delay(1000);}
+  delay(200);
+  
 	char encVal = rotaryEncRead(MAIN_ENCODER);
 	while (Serial.available() > 0) {
 		int subaddr = Serial.parseInt();
@@ -193,29 +227,42 @@ char rotaryEncRead(byte rotaryNr) {
   return tmp;
 }
 
-void doEncoder0() {
-    // If interrupts come faster than 5ms, assume it's a bounce and ignore
-    if (millis() - encoder0millis > 5) {
-        if (!bitRead(PIND,encoder0PinB))
-            encoder0Pos++;
-        else
-            encoder0Pos--;
-        }
-    encoder0millis = millis();
-  // here is code to process encoder change...
-  encoder0Change = 1;
+void volumeBar(byte vol){
+  // input 0-100%
+  const byte wdth = 80; // width of Volume Bar
+  const byte hght = 15; // height of Volume Bar
+  const byte x = 0; // height of Volume Bar
+  const byte y = 30; // height of Volume Bar
+  byte gval = map(vol, 0, 100, 0, wdth-2);
+  u8g2.drawFrame(x,y,wdth,hght);
+  u8g2.drawBox(x+1,y+1,gval,hght-2);
+  u8g2.setFont(u8g2_font_helvB12_tr);
+  u8g2.setCursor(wdth+7, y+hght-2);
+  drawNumRight(vol);
+  u8g2.print("%");
 }
 
-void doEncoder1() {
-    // If interrupts come faster than 5ms, assume it's a bounce and ignore
-    if (millis() - encoder1millis > 5) {
-        if (!bitRead(PIND,encoder1PinB))
-            encoder1Pos++;
-        else
-            encoder1Pos--;
-        }
-    encoder1millis = millis();
-  // here is code to process encoder change...
-  encoder1Change = 1;
+void tembreBar(int tembre){
+  // input -14-14
+  const byte wdth = 80; // width of Volume Bar
+  const byte hght = 15; // height of Volume Bar
+  const byte x = 0; // height of Volume Bar
+  const byte y = 30; // height of Volume Bar
+  byte gval = map(tembre, -14, 14, -(wdth-2)/2,(wdth-2)/2);
+  u8g2.drawFrame(x,y,wdth,hght);
+  if(tembre>0){u8g2.drawBox(x+wdth/2,y+1,gval,hght-2);}
+  if(tembre==0){u8g2.drawBox(x+wdth/2-1,y+1,3,hght-2);}
+  if(tembre<0){u8g2.drawBox(x+wdth/2+gval,y+1,-gval,hght-2);}
+  u8g2.drawLine(x+wdth/2,y-2,x+wdth/2,y+hght+2);
+  u8g2.setFont(u8g2_font_helvB12_tr);
+  u8g2.setCursor(wdth+(tembre>=0 ? 2 : -5), y+hght-2);
+  drawNumRight(tembre);
+  u8g2.print("dB");
+}
+
+
+void drawNumRight(int vol){
+  if(vol<10){u8g2.print("  ");}else if(vol<100){u8g2.print(" ");}
+  u8g2.print(vol);
 }
 
