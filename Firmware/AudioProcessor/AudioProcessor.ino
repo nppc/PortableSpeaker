@@ -1,6 +1,7 @@
-#include "i2c.c"
+//#include "i2c.c"
 #include <Wire.h>
 #include <U8g2lib.h>
+#include "encoder.ino"
 
 
 // for encoder readings use bitRead for speed.
@@ -37,7 +38,8 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 // Datasheet says 0x88 but that is the 8 bit address.
 // Wire.h automatically appends the extra (lsb write) bit, 
 // so 0x44 if Wire library is used.
-#define I2C_ADDR            0b10001000  // 0x88 - no Wire library is used
+//#define I2C_ADDR            0b10001000  // 0x88 - no Wire library is used
+#define I2C_ADDR            0x44  // for Wire library
 
 // TDA7440 subaddress (function)
 #define INPUT_SELECT		0x00 // 4 inputs
@@ -57,68 +59,23 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 // TDA7440 autoincrement flag
 #define AUTO_INC			0x10
 
-// Encoders variables
-volatile char encoder0Pos = 0;
-volatile byte encoder0Change = 0;
-unsigned long encoder0millis = 0;
-
-volatile char encoder1Pos = 0;
-volatile byte encoder1Change = 0;
-unsigned long encoder1millis = 0;
-
-void doEncoder0() {
-    // If interrupts come faster than 5ms, assume it's a bounce and ignore
-    if (millis() - encoder0millis > 5) {
-        if (!bitRead(PIND,encoder0PinB))
-            encoder0Pos++;
-        else
-            encoder0Pos--;
-        }
-    encoder0millis = millis();
-  // here is code to process encoder change...
-  encoder0Change = 1;
-}
-
-void doEncoder1() {
-    // If interrupts come faster than 5ms, assume it's a bounce and ignore
-    if (millis() - encoder1millis > 5) {
-        if (!bitRead(PIND,encoder1PinB))
-            encoder1Pos++;
-        else
-            encoder1Pos--;
-        }
-    encoder1millis = millis();
-  // here is code to process encoder change...
-  encoder1Change = 1;
-}
-
 void setup() {
-	I2CInit();
+	//I2CInit();
 	Serial.begin(115200);
-  u8g2.begin();
-  u8g2.setFlipMode(0);
+	u8g2.begin();
+	u8g2.setFlipMode(0);
 
-	pinMode(encoder0PinA, INPUT_PULLUP); 
-	pinMode(encoder0PinB, INPUT_PULLUP); 
-	pinMode(encoder1PinA, INPUT_PULLUP); 
-	pinMode(encoder1PinB, INPUT_PULLUP); 
-	pinMode(BUTTON0_PIN, INPUT_PULLUP);
-	pinMode(BUTTON1_PIN, INPUT_PULLUP);
+	encoderInit();
 
-	attachInterrupt(0, doEncoder0, FALLING);  // encoder pin on interrupt 0 - pin 2
-	attachInterrupt(1, doEncoder1, FALLING);  // encoder pin on interrupt 1 - pin 3
+	// Show message MUTED
+	u8g2.firstPage();
+	do {
+		u8g2.setFont(u8g2_font_fub17_tr);
+		u8g2.drawStr(10,40,"MUTED");
+	} while (u8g2.nextPage());
 
-	I2CStart(I2C_ADDR);
-	I2CWriteByte(VOLUME);
-	I2CWriteByte(VOLUME_MUTE); // direct dB representation (0-40)
-	I2CStop();  
-	delay(2);
-	I2CStart(I2C_ADDR);
-	I2CWriteByte(SPEAKER_RIGHT | AUTO_INC);
-	I2CWriteByte(SPEAKER_UNMUTE); // right
-	I2CWriteByte(SPEAKER_UNMUTE); // left
-	I2CStop();      
-	delay(2);
+	// When power on then TDA is starting in muted mode, but lets repeat it (mute volume, but unmute speakers)
+	muteAudio();
 
 /*
 	// smooth volume up to 50%
@@ -130,30 +87,11 @@ void setup() {
 		delay(100);
 	}
 */
-  u8g2.firstPage();
-  do {
-    u8g2.setFont(u8g2_font_fub17_tr);
-    u8g2.drawStr(0,17,"Treble");
-  } while (u8g2.nextPage());
+
 }
 
-int i=0; int dir=1;
 void loop() {
-  u8g2.firstPage();
-  u8g2.setBufferCurrTileRow(3);
-  for(byte b=0;b<3;b++){
-//  do {
-    //u8g2.setFont(u8g2_font_fub17_tr);
-    //u8g2.drawStr(0,17,"Treble");
-    tembreBar(i);
-    u8g2.nextPage();
-  }
-//  } while ( u8g2.nextPage() );
-  if(i==0){delay(1000);}
-  i=i+dir;
-  if(i>14 || i<-14){dir=-dir; i=i+dir;delay(1000);}
-  delay(200);
-  
+ 
 	char encVal = rotaryEncRead(MAIN_ENCODER);
 	while (Serial.available() > 0) {
 		int subaddr = Serial.parseInt();
@@ -161,50 +99,40 @@ void loop() {
 
 		// look for the newline. That's the end of sentence:
 		if (Serial.read() == '\n') {
+			Wire.beginTransmission(I2C_ADDR);
 			switch (subaddr) {
 				case INPUT_SELECT: 
 					Serial.print("INPUT: "); Serial.println(data);
-					I2CStart(I2C_ADDR);
-					I2CWriteByte(INPUT_SELECT);
-					I2CWriteByte(byte(4-data));
-					I2CStop();      
+					Wire.write(INPUT_SELECT);
+					Wire.write(byte(4-data));
 					break;
 				case INPUT_GAIN: 
 					Serial.print("INPUT GAIN (dB): "); Serial.println(data);
-					I2CStart(I2C_ADDR);
-					I2CWriteByte(INPUT_GAIN);
-					I2CWriteByte(byte(data/2));
-					I2CStop();      
+					Wire.write(INPUT_GAIN);
+					Wire.write(byte(data/2));
 					break;
 				case VOLUME: 
 					Serial.print("VOLUME (dB): "); Serial.println(data);
-					I2CStart(I2C_ADDR);
-					I2CWriteByte(VOLUME);
-					I2CWriteByte(byte(40-data));
-					I2CStop();      
+					Wire.write(VOLUME);
+					Wire.write(byte(40-data));
 					break;
 				case BASS: 
 					Serial.print("BASS (dB): "); Serial.println(data);
-					I2CStart(I2C_ADDR);
-					I2CWriteByte(BASS);
-					I2CWriteByte(convert_dB2byte(data));
-					I2CStop();      
+					Wire.write(BASS);
+					Wire.write(convert_dB2byte(data));
 					break;
 				case TREBLE: 
 					Serial.print("TREBLE (dB): "); Serial.println(data);
-					I2CStart(I2C_ADDR);
-					I2CWriteByte(TREBLE);
-					I2CWriteByte(convert_dB2byte(data));
-					I2CStop();      
+					Wire.write(TREBLE);
+					Wire.write(convert_dB2byte(data));
 					break;
 				default: // mute/unmute speakers
 					byte dat = (data==0 ? SPEAKER_MUTE : SPEAKER_UNMUTE);
-					I2CStart(I2C_ADDR);
-					I2CWriteByte(SPEAKER_RIGHT | AUTO_INC);
-					I2CWriteByte(dat); // right
-					I2CWriteByte(dat); // left
-					I2CStop();      
+					Wire.write(SPEAKER_RIGHT | AUTO_INC);
+					Wire.write(dat); // right
+					Wire.write(dat); // left
 			}
+			Wire.endTransmission();      
 			Serial.println();
 		}
 	}
@@ -227,42 +155,5 @@ char rotaryEncRead(byte rotaryNr) {
   return tmp;
 }
 
-void volumeBar(byte vol){
-  // input 0-100%
-  const byte wdth = 80; // width of Volume Bar
-  const byte hght = 15; // height of Volume Bar
-  const byte x = 0; // height of Volume Bar
-  const byte y = 30; // height of Volume Bar
-  byte gval = map(vol, 0, 100, 0, wdth-2);
-  u8g2.drawFrame(x,y,wdth,hght);
-  u8g2.drawBox(x+1,y+1,gval,hght-2);
-  u8g2.setFont(u8g2_font_helvB12_tr);
-  u8g2.setCursor(wdth+7, y+hght-2);
-  drawNumRight(vol);
-  u8g2.print("%");
-}
 
-void tembreBar(int tembre){
-  // input -14-14
-  const byte wdth = 80; // width of Volume Bar
-  const byte hght = 15; // height of Volume Bar
-  const byte x = 0; // height of Volume Bar
-  const byte y = 30; // height of Volume Bar
-  byte gval = map(tembre, -14, 14, -(wdth-2)/2,(wdth-2)/2);
-  u8g2.drawFrame(x,y,wdth,hght);
-  if(tembre>0){u8g2.drawBox(x+wdth/2,y+1,gval,hght-2);}
-  if(tembre==0){u8g2.drawBox(x+wdth/2-1,y+1,3,hght-2);}
-  if(tembre<0){u8g2.drawBox(x+wdth/2+gval,y+1,-gval,hght-2);}
-  u8g2.drawLine(x+wdth/2,y-2,x+wdth/2,y+hght+2);
-  u8g2.setFont(u8g2_font_helvB12_tr);
-  u8g2.setCursor(wdth+(tembre>=0 ? 2 : -5), y+hght-2);
-  drawNumRight(tembre);
-  u8g2.print("dB");
-}
-
-
-void drawNumRight(int vol){
-  if(vol<10){u8g2.print("  ");}else if(vol<100){u8g2.print(" ");}
-  u8g2.print(vol);
-}
 
