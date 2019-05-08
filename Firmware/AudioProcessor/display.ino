@@ -10,7 +10,7 @@ showVolume(){
 }
 
 // show only volume control. Assume that header already displayed
-changeVolume(byte vol) {
+changeVolumeDisplay(byte vol) {
 	//we updating only part of the screen
 	u8g2.firstPage();
 	u8g2.setBufferCurrTileRow(3);
@@ -56,7 +56,7 @@ showTreble(){
 }
 
 // show only Tembre control. Assume that header already displayed
-changeTembre(int tembre) {
+changeTembreDisplay(int tembre) {
 	//we updating only part of the screen
 	u8g2.firstPage();
 	u8g2.setBufferCurrTileRow(3);

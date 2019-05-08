@@ -23,41 +23,11 @@
 
 U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
-/***********
- * SubAddress:
- * 0 - input select
- * 1 - input gain
- * 2 - volume
- * 3 - bass
- * 4 - not used
- * 5 - treble
- * 6 - Speaker R
- * 7 - Speaker L
- */
 
-// Datasheet says 0x88 but that is the 8 bit address.
-// Wire.h automatically appends the extra (lsb write) bit, 
-// so 0x44 if Wire library is used.
-//#define I2C_ADDR            0b10001000  // 0x88 - no Wire library is used
-#define I2C_ADDR            0x44  // for Wire library
 
-// TDA7440 subaddress (function)
-#define INPUT_SELECT		0x00 // 4 inputs
-#define INPUT_GAIN			0x01 // 2dB steps [0-15]=[0-30] (0dB to +30dB)
-#define VOLUME				0x02 // 1dB steps [0-40]=[0-40] (0dB to -40dB) or MUTE
-#define BASS				0x03
-#define TREBLE				0x05
-#define SPEAKER_RIGHT		0x06 // for Balance - not using as we input mono (only for muting).
-#define SPEAKER_LEFT		0x07 // for Balance - not using as we input mono (only for muting).
-
-// TDA7440 function values
-#define VOLUME_MUTE			0b01111111
-
-#define SPEAKER_MUTE		0b01111111
-#define SPEAKER_UNMUTE		0b00000000
-
-// TDA7440 autoincrement flag
-#define AUTO_INC			0x10
+int curVolume = 0;	// in percents 0-100 (0=mute, 1=lowest volume, 100=highest volume)
+int curBass = 0;	// from -14 to +14
+int curTreble = 0;	// from -14 to +14
 
 void setup() {
 	//I2CInit();
@@ -74,8 +44,9 @@ void setup() {
 		u8g2.drawStr(10,40,"MUTED");
 	} while (u8g2.nextPage());
 
-	// When power on then TDA is starting in muted mode, but lets repeat it (mute volume, but unmute speakers)
-	muteAudio();
+	initAudio(); // When power on then TDA is starting in muted mode, but lets repeat it (mute volume, but unmute speakers)
+	setBass(curBass);
+	setTreble(curTreble);
 
 /*
 	// smooth volume up to 50%
@@ -87,12 +58,23 @@ void setup() {
 		delay(100);
 	}
 */
-
+	do{delay(5);}while(rotaryEncRead(MAIN_ENCODER)==0)
+	showVolume();
+	changeVolumeDisplay(curVolume);
 }
 
 void loop() {
  
 	char encVal = rotaryEncRead(MAIN_ENCODER);
+	if(encVal!=0 && encVal!=127){
+		curVolume = curVolume + encVal;
+		if(curVolume<0){curVolume=0;}
+		if(curVolume>100){curVolume=100;}
+		changeVolumeDisplay(curVolume);
+		setVolume(curVolume);
+	}
+	delay(1);	// just to prevent encoder reading to often (as rotaryEncRead disables interrupts shortly)
+	
 	while (Serial.available() > 0) {
 		int subaddr = Serial.parseInt();
 		int data = Serial.parseInt();
@@ -114,7 +96,7 @@ void loop() {
 				case VOLUME: 
 					Serial.print("VOLUME (dB): "); Serial.println(data);
 					Wire.write(VOLUME);
-					Wire.write(byte(40-data));
+					Wire.write(byte(47-data));
 					break;
 				case BASS: 
 					Serial.print("BASS (dB): "); Serial.println(data);
@@ -138,22 +120,6 @@ void loop() {
 	}
 }
 
-// input: -14 to +14 (in 2dB steps eg -14,-12,-10...)
-// output: 0 to 15 (see datasheet)
-byte convert_dB2byte(int dB){
-	byte val;
-	if(dB<0){val=(14+dB)/2;}else{val=(14-dB)/2+8;}
-	return val;
-}
-
-char rotaryEncRead(byte rotaryNr) {
-  noInterrupts();
-  char tmp = (rotaryNr==MAIN_ENCODER) ? encoder0Pos : encoder1Pos;
-  if(rotaryNr==MAIN_ENCODER){encoder0Pos=0;}else{encoder1Pos=0;}  // reset encoders
-  interrupts();
-  if(!bitRead(PIND,(rotaryNr==MAIN_ENCODER) ? BUTTON0_PIN : BUTTON1_PIN)){tmp=127;}
-  return tmp;
-}
 
 
 
