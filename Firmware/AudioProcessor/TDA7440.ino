@@ -71,6 +71,14 @@ setVolume(int dataP){
 	delay(1);
 }
 
+setInput(byte data){
+	Wire.beginTransmission(I2C_ADDR);
+	Wire.write(INPUT_SELECT);
+	Wire.write(convert_dB2byte(data));
+	Wire.endTransmission();      
+	delay(1);
+}
+
 //-14 to 14
 setBass(int data){
 	Wire.beginTransmission(I2C_ADDR);
