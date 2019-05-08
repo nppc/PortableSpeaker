@@ -1,23 +1,24 @@
+//#include "display.h"
+//#include <Wire.h>
+#include <U8g2lib.h>
+
+
+
+
+void drawNumRight(int vol){
+  if(vol<10){u8g2.print("  ");}else if(vol<100){u8g2.print(" ");}
+  u8g2.print(vol);
+}
+
 //**************** Volume routines *******************/
 
 // show header and clear the remaining of the screen
-showVolume(){
+void showVolume(){
 	u8g2.firstPage();
 	do {
 		u8g2.setFont(u8g2_font_fub17_tr);
-		u8g2.drawStr(0,17,F("Volume"));
+		u8g2.drawStr(0,17,"Volume");
 	} while (u8g2.nextPage());
-}
-
-// show only volume control. Assume that header already displayed
-changeVolumeDisplay(byte vol) {
-	//we updating only part of the screen
-	u8g2.firstPage();
-	u8g2.setBufferCurrTileRow(3);
-	for(byte b=0;b<3;b++){
-		volumeBar(vol);
-		u8g2.nextPage();
-	}	
 }
 
 void volumeBar(byte vol){
@@ -35,37 +36,20 @@ void volumeBar(byte vol){
   u8g2.print("%");
 }
 
-
-//**************** Tembre routines (bass and treble) *******************/
-
-// show header and clear the remaining of the screen
-showBass(){
-	u8g2.firstPage();
-	do {
-		u8g2.setFont(u8g2_font_fub17_tr);
-		u8g2.drawStr(0,17,F("Bass"));
-	} while (u8g2.nextPage());
-}
-
-showTreble(){
-	u8g2.firstPage();
-	do {
-		u8g2.setFont(u8g2_font_fub17_tr);
-		u8g2.drawStr(0,17,F("Treble"));
-	} while (u8g2.nextPage());
-}
-
-// show only Tembre control. Assume that header already displayed
-changeTembreDisplay(int tembre) {
+// show only volume control. Assume that header already displayed
+void changeVolumeDisplay(byte vol) {
 	//we updating only part of the screen
 	u8g2.firstPage();
 	u8g2.setBufferCurrTileRow(3);
 	for(byte b=0;b<3;b++){
-		tembreBar(tembre);
+		volumeBar(vol);
 		u8g2.nextPage();
 	}	
 }
 
+
+
+//**************** Tembre routines (bass and treble) *******************/
 
 void tembreBar(int tembre){
   // input -14-14
@@ -85,8 +69,31 @@ void tembreBar(int tembre){
   u8g2.print("dB");
 }
 
-
-void drawNumRight(int vol){
-  if(vol<10){u8g2.print("  ");}else if(vol<100){u8g2.print(" ");}
-  u8g2.print(vol);
+// show header and clear the remaining of the screen
+void showBass(){
+	u8g2.firstPage();
+	do {
+		u8g2.setFont(u8g2_font_fub17_tr);
+		u8g2.drawStr(0,17,"Bass");
+	} while (u8g2.nextPage());
 }
+
+void showTreble(){
+	u8g2.firstPage();
+	do {
+		u8g2.setFont(u8g2_font_fub17_tr);
+		u8g2.drawStr(0,17,"Treble");
+	} while (u8g2.nextPage());
+}
+
+// show only Tembre control. Assume that header already displayed
+void changeTembreDisplay(int tembre) {
+	//we updating only part of the screen
+	u8g2.firstPage();
+	u8g2.setBufferCurrTileRow(3);
+	for(byte b=0;b<3;b++){
+		tembreBar(tembre);
+		u8g2.nextPage();
+	}	
+}
+

@@ -1,3 +1,5 @@
+//#include "encoder.h"
+
 // Encoders variables
 volatile char encoder0Pos = 0;
 volatile byte encoder0Change = 0;
@@ -10,10 +12,10 @@ unsigned long encoder1millis = 0;
 
 char rotaryEncRead(byte rotaryNr) {
   noInterrupts();
-  char tmp = (rotaryNr==MAIN_ENCODER) ? encoder0Pos : encoder1Pos;
-  if(rotaryNr==MAIN_ENCODER){encoder0Pos=0;}else{encoder1Pos=0;}  // reset encoders
+  char tmp = (rotaryNr==0) ? encoder0Pos : encoder1Pos;
+  if(rotaryNr==0){encoder0Pos=0;}else{encoder1Pos=0;}  // reset encoders
   interrupts();
-  if(!bitRead(PIND,(rotaryNr==MAIN_ENCODER) ? BUTTON0_PIN : BUTTON1_PIN)){tmp=127;}
+  if(!bitRead(PIND,(rotaryNr==0) ? BUTTON0_PIN : BUTTON1_PIN)){tmp=127;}
   return tmp;
 }
 

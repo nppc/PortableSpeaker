@@ -1,3 +1,5 @@
+//#include "TDA7440.h"
+
 /*
 Power on settings:
 INPUT SELECTION: IN2
@@ -20,11 +22,6 @@ SPEAKER: MUTE
  * 7 - Speaker L
  */
 
-// Datasheet says 0x88 but that is the 8 bit address.
-// Wire.h automatically appends the extra (lsb write) bit, 
-// so 0x44 if Wire library is used.
-//#define I2C_ADDR            0b10001000  // 0x88 - no Wire library is used
-#define I2C_ADDR            0x44  // for Wire library
 
 // TDA7440 subaddress (function)
 #define INPUT_SELECT		0x00 // 4 inputs
@@ -61,7 +58,7 @@ void initAudio(){
 }
 
 //0 to 100
-setVolume(int dataP){
+void setVolume(int dataP){
 	// 0 - mute
 	byte data = map(dataP,1,100,47,0); // convert 1-100% to 47-0dB
 	Wire.beginTransmission(I2C_ADDR);
@@ -71,7 +68,18 @@ setVolume(int dataP){
 	delay(1);
 }
 
-setInput(byte data){
+
+
+// input: -14 to +14 (in 2dB steps eg -14,-12,-10...)
+// output: 0 to 15 (see datasheet)
+byte convert_dB2byte(int dB){
+  byte val;
+  if(dB<0){val=(14+dB)/2;}else{val=(14-dB)/2+8;}
+  return val;
+}
+
+
+void setInput(byte data){
 	Wire.beginTransmission(I2C_ADDR);
 	Wire.write(INPUT_SELECT);
 	Wire.write(convert_dB2byte(data));
@@ -80,7 +88,7 @@ setInput(byte data){
 }
 
 //-14 to 14
-setBass(int data){
+void setBass(int data){
 	Wire.beginTransmission(I2C_ADDR);
 	Wire.write(BASS);
 	Wire.write(convert_dB2byte(data));
@@ -89,7 +97,7 @@ setBass(int data){
 }
 
 //-14 to 14
-setTreble(int data){
+void setTreble(int data){
 	Wire.beginTransmission(I2C_ADDR);
 	Wire.write(TREBLE);
 	Wire.write(convert_dB2byte(data));
@@ -97,11 +105,3 @@ setTreble(int data){
 	delay(1);
 }
 
-
-// input: -14 to +14 (in 2dB steps eg -14,-12,-10...)
-// output: 0 to 15 (see datasheet)
-byte convert_dB2byte(int dB){
-	byte val;
-	if(dB<0){val=(14+dB)/2;}else{val=(14-dB)/2+8;}
-	return val;
-}
