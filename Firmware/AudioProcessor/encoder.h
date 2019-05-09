@@ -46,6 +46,9 @@ void doEncoder1() {
   encoder1Change = 1;
 }
 
+void waitEncoderReleased(byte rotaryNr){
+  do{delay(1);}while(rotaryEncRead(rotaryNr)==127);
+}
 
 void encoderInit() {
 	pinMode(encoder0PinA, INPUT_PULLUP); 

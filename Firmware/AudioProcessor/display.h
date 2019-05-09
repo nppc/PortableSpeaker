@@ -1,9 +1,3 @@
-//#include "display.h"
-//#include <Wire.h>
-#include <U8g2lib.h>
-
-
-
 
 void drawNumRight(int vol){
   if(vol<10){u8g2.print("  ");}else if(vol<100){u8g2.print(" ");}
@@ -32,7 +26,7 @@ void volumeBar(byte vol){
   u8g2.drawFrame(x,y,wdth,hght);
   u8g2.drawBox(x+1,y+1,gval,hght-2);
   u8g2.setFont(u8g2_font_helvB12_tr);
-  u8g2.setCursor(wdth+7, y+hght-2);
+  u8g2.setCursor(wdth+4, y+hght-2);
   drawNumRight(vol);
   u8g2.print(F("dB"));
 }
@@ -60,7 +54,7 @@ void tembreBar(int tembre){
   const byte y = 30; // height of Volume Bar
   byte gval = map(tembre, -14, 14, -(wdth-2)/2,(wdth-2)/2);
   u8g2.drawFrame(x,y,wdth,hght);
-  if(tembre>0){u8g2.drawBox(x+wdth/2,y+1,gval,hght-2);}
+  if(tembre>0){u8g2.drawBox(x+wdth/2,y+1,gval+1,hght-2);}
   if(tembre==0){u8g2.drawBox(x+wdth/2-1,y+1,3,hght-2);}
   if(tembre<0){u8g2.drawBox(x+wdth/2+gval,y+1,-gval,hght-2);}
   u8g2.drawLine(x+wdth/2,y-2,x+wdth/2,y+hght+2);

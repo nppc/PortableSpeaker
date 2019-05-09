@@ -45,10 +45,10 @@ void setup() {
 	curMainScreen=1;	//Volume
 	showVolume();
 	changeVolumeDisplay(curVolume);
+  waitEncoderReleased(MAIN_ENCODER); 
 }
 
 void loop() {
- 
 	char encVal = rotaryEncRead(MAIN_ENCODER);
 	switch (curMainScreen) {
 		case 1: //Volume
@@ -59,6 +59,7 @@ void loop() {
 				changeVolumeDisplay(curVolume);
 				setVolume(curVolume);
 			}else if(encVal==127){
+        waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=2;
 				showBass();
 				changeTembreDisplay(curBass);
@@ -72,6 +73,7 @@ void loop() {
 				changeTembreDisplay(curBass);
 				setBass(curBass);
 			}else if(encVal==127){
+        waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=3;
 				showTreble();
 				changeTembreDisplay(curTreble);
@@ -85,6 +87,7 @@ void loop() {
 				changeTembreDisplay(curTreble);
 				setBass(curTreble);
 			}else if(encVal==127){
+        waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=1;
 				showVolume();
 				changeVolumeDisplay(curVolume);
@@ -110,21 +113,6 @@ void loop() {
 					Serial.print("INPUT GAIN (dB): "); Serial.println(data);
 					Wire.write(INPUT_GAIN);
 					Wire.write(byte(data/2));
-					break;
-				case VOLUME: 
-					Serial.print("VOLUME (dB): "); Serial.println(data);
-					Wire.write(VOLUME);
-					Wire.write(byte(47-data));
-					break;
-				case BASS: 
-					Serial.print("BASS (dB): "); Serial.println(data);
-					Wire.write(BASS);
-					Wire.write(convert_dB2byte(data));
-					break;
-				case TREBLE: 
-					Serial.print("TREBLE (dB): "); Serial.println(data);
-					Wire.write(TREBLE);
-					Wire.write(convert_dB2byte(data));
 					break;
 				default: // mute/unmute speakers
 					byte dat = (data==0 ? SPEAKER_MUTE : SPEAKER_UNMUTE);
