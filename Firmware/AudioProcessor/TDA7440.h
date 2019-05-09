@@ -57,10 +57,10 @@ void initAudio(){
 	delay(1);
 }
 
-//0 to 100
+//0 to 48
 void setVolume(int dataP){
 	// 0 - mute
-	byte data = map(dataP,1,100,47,0); // convert 1-100% to 47-0dB
+	byte data = map(dataP,1,48,47,0); // convert 1-48 to 47-0dB
 	Wire.beginTransmission(I2C_ADDR);
 	Wire.write(VOLUME);
 	if(dataP==0){Wire.write(VOLUME_MUTE);}else{Wire.write(data);}

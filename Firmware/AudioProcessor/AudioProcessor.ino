@@ -9,6 +9,7 @@
 int curVolume = 0;	// in percents 0-100 (0=mute, 1=lowest volume, 100=highest volume)
 int curBass = 0;	// from -14 to +14
 int curTreble = 0;	// from -14 to +14
+byte curMainScreen = 0;
 
 void setup() {
 	//I2CInit();
@@ -41,6 +42,7 @@ void setup() {
 	}
 */
 	do{delay(5);} while(rotaryEncRead(MAIN_ENCODER)==0);
+	curMainScreen=1;	//Volume
 	showVolume();
 	changeVolumeDisplay(curVolume);
 }
@@ -48,12 +50,46 @@ void setup() {
 void loop() {
  
 	char encVal = rotaryEncRead(MAIN_ENCODER);
-	if(encVal!=0 && encVal!=127){
-		curVolume = curVolume + encVal;
-		if(curVolume<0){curVolume=0;}
-		if(curVolume>100){curVolume=100;}
-		changeVolumeDisplay(curVolume);
-		setVolume(curVolume);
+	switch (curMainScreen) {
+		case 1: //Volume
+			if(encVal!=0 && encVal!=127){
+				curVolume = curVolume + encVal;
+				if(curVolume<0){curVolume=0;}
+				if(curVolume>48){curVolume=48;}
+				changeVolumeDisplay(curVolume);
+				setVolume(curVolume);
+			}else if(encVal==127){
+				curMainScreen=2;
+				showBass();
+				changeTembreDisplay(curBass);
+			}
+			break;
+		case 2: //Bass
+			if(encVal!=0 && encVal!=127){
+				curBass = curBass + encVal;
+				if(curBass<-14){curBass=-14;}
+				if(curBass>14){curBass=14;}
+				changeTembreDisplay(curBass);
+				setBass(curBass);
+			}else if(encVal==127){
+				curMainScreen=3;
+				showTreble();
+				changeTembreDisplay(curTreble);
+			}		
+			break;
+		case 3: //Treble
+			if(encVal!=0 && encVal!=127){
+				curTreble = curTreble + encVal;
+				if(curTreble<-14){curTreble=-14;}
+				if(curTreble>14){curTreble=14;}
+				changeTembreDisplay(curTreble);
+				setBass(curTreble);
+			}else if(encVal==127){
+				curMainScreen=1;
+				showVolume();
+				changeVolumeDisplay(curVolume);
+			}		
+			break;
 	}
 	delay(1);	// just to prevent encoder reading to often (as rotaryEncRead disables interrupts shortly)
 	

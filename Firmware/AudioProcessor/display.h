@@ -17,23 +17,24 @@ void showVolume(){
 	u8g2.firstPage();
 	do {
 		u8g2.setFont(u8g2_font_fub17_tr);
-		u8g2.drawStr(0,17,"Volume");
+		u8g2.setCursor(0,17);
+		u8g2.print(F("Volume"));
 	} while (u8g2.nextPage());
 }
 
 void volumeBar(byte vol){
-  // input 0-100%
+  // input 0-48 (0 - mute)
   const byte wdth = 80; // width of Volume Bar
   const byte hght = 15; // height of Volume Bar
   const byte x = 0; // height of Volume Bar
   const byte y = 30; // height of Volume Bar
-  byte gval = map(vol, 0, 100, 0, wdth-2);
+  byte gval = map(vol, 0, 48, 0, wdth-2);
   u8g2.drawFrame(x,y,wdth,hght);
   u8g2.drawBox(x+1,y+1,gval,hght-2);
   u8g2.setFont(u8g2_font_helvB12_tr);
   u8g2.setCursor(wdth+7, y+hght-2);
   drawNumRight(vol);
-  u8g2.print("%");
+  u8g2.print(F("dB"));
 }
 
 // show only volume control. Assume that header already displayed
@@ -66,7 +67,7 @@ void tembreBar(int tembre){
   u8g2.setFont(u8g2_font_helvB12_tr);
   u8g2.setCursor(wdth+(tembre>=0 ? 2 : -5), y+hght-2);
   drawNumRight(tembre);
-  u8g2.print("dB");
+  u8g2.print(F("dB"));
 }
 
 // show header and clear the remaining of the screen
@@ -74,7 +75,8 @@ void showBass(){
 	u8g2.firstPage();
 	do {
 		u8g2.setFont(u8g2_font_fub17_tr);
-		u8g2.drawStr(0,17,"Bass");
+		u8g2.setCursor(0,17);
+		u8g2.print(F("Bass"));
 	} while (u8g2.nextPage());
 }
 
@@ -82,7 +84,8 @@ void showTreble(){
 	u8g2.firstPage();
 	do {
 		u8g2.setFont(u8g2_font_fub17_tr);
-		u8g2.drawStr(0,17,"Treble");
+		u8g2.setCursor(0,17);
+		u8g2.print(F("Treble"));
 	} while (u8g2.nextPage());
 }
 
