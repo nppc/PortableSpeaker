@@ -10,10 +10,11 @@ int curVolume = 0;	// in percents 0-100 (0=mute, 1=lowest volume, 100=highest vo
 int curBass = 0;	// from -14 to +14
 int curTreble = 0;	// from -14 to +14
 byte curMainScreen = 0;
+unsigned long defaultScreenTiming;	// show default screen if encoders are inactive for more that 30 sec
 
 void setup() {
 	//I2CInit();
-  Wire.begin();
+	Wire.begin();
 	Serial.begin(115200);
 	u8g2.begin();
 	u8g2.setFlipMode(0);
@@ -24,33 +25,43 @@ void setup() {
 	u8g2.firstPage();
 	do {
 		u8g2.setFont(u8g2_font_fub17_tr);
-		u8g2.drawStr(20,40,"MUTED");
+		u8g2.setCursor(20,40);
+		u8g2.print(F("MUTED"));
 	} while (u8g2.nextPage());
 
 	initAudio(); // When power on then TDA is starting in muted mode, but lets repeat it (mute volume, but unmute speakers)
 	setBass(curBass);
 	setTreble(curTreble);
 
-/*
-	// smooth volume up to 50%
-	for(byte i=0;i<20;i++){
-		I2CStart(I2C_ADDR);
-		I2CWriteByte(VOLUME);
-		I2CWriteByte(40-i); // direct dB representation (0-40)
-		I2CStop();      
-		delay(100);
-	}
-*/
 	do{delay(5);} while(rotaryEncRead(MAIN_ENCODER)==0);
 	curMainScreen=1;	//Volume
 	showVolume();
 	changeVolumeDisplay(curVolume);
-  waitEncoderReleased(MAIN_ENCODER); 
+	waitEncoderReleased(MAIN_ENCODER); 
+	defaultScreenTiming = millis();
 }
 
 void loop() {
 	char encVal = rotaryEncRead(MAIN_ENCODER);
+	if(encVal!=0){
+		defaultScreenTiming = millis();
+	}else if(millis()> defaultScreenTiming + 30000 && curMainScreen!=0){
+		curMainScreen = 0;
+		showDefaultScreen();
+	}
 	switch (curMainScreen) {
+		case 0: //Default screen
+			if(encVal!=0 && encVal!=127){
+				curMainScreen=1;
+				showVolume();
+				changeVolumeDisplay(curVolume);
+			}else if(encVal==127){
+				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
+				curMainScreen=2;
+				showBass();
+				changeTembreDisplay(curBass);
+			}
+			break;
 		case 1: //Volume
 			if(encVal!=0 && encVal!=127){
 				curVolume = curVolume + encVal;
@@ -59,7 +70,7 @@ void loop() {
 				changeVolumeDisplay(curVolume);
 				setVolume(curVolume);
 			}else if(encVal==127){
-        waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
+				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=2;
 				showBass();
 				changeTembreDisplay(curBass);
@@ -73,7 +84,7 @@ void loop() {
 				changeTembreDisplay(curBass);
 				setBass(curBass);
 			}else if(encVal==127){
-        waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
+				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=3;
 				showTreble();
 				changeTembreDisplay(curTreble);
@@ -87,7 +98,7 @@ void loop() {
 				changeTembreDisplay(curTreble);
 				setBass(curTreble);
 			}else if(encVal==127){
-        waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
+				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=1;
 				showVolume();
 				changeVolumeDisplay(curVolume);

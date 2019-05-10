@@ -43,7 +43,6 @@ void changeVolumeDisplay(byte vol) {
 }
 
 
-
 //**************** Tembre routines (bass and treble) *******************/
 
 void tembreBar(int tembre){
@@ -94,3 +93,19 @@ void changeTembreDisplay(int tembre) {
 	}	
 }
 
+// combine on one screen volume, bass and treble
+void showDefaultScreen(){
+	u8g2.firstPage();
+	do {
+		u8g2.setFont(u8g2_font_fub17_tr);
+		u8g2.setCursor(0,17);
+		u8g2.print(F("VOL: "));
+		u8g2.print(curVolume);
+		u8g2.setCursor(0,40);
+		u8g2.print(F("BAS: "));
+		u8g2.print(curBass);
+		u8g2.setCursor(0,63);
+		u8g2.print(F("TRE: "));
+		u8g2.print(curTreble);
+	} while (u8g2.nextPage());
+}
