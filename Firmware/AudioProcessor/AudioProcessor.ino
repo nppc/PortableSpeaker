@@ -6,9 +6,6 @@
 #include "TDA7440.h"
 //#include "i2c.c"
 
-int curVolume = 0;	// in percents 0-100 (0=mute, 1=lowest volume, 100=highest volume)
-int curBass = 0;	// from -14 to +14
-int curTreble = 0;	// from -14 to +14
 byte curMainScreen = 0;
 unsigned long defaultScreenTiming;	// show default screen if encoders are inactive for more that 30 sec
 
@@ -96,7 +93,7 @@ void loop() {
 				if(curTreble<-14){curTreble=-14;}
 				if(curTreble>14){curTreble=14;}
 				changeTembreDisplay(curTreble);
-				setBass(curTreble);
+				setTreble(curTreble);
 			}else if(encVal==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=1;

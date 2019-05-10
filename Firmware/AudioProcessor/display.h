@@ -97,7 +97,7 @@ void changeTembreDisplay(int tembre) {
 void showDefaultScreen(){
 	u8g2.firstPage();
 	do {
-		u8g2.setFont(u8g2_font_fub17_tr);
+		u8g2.setFont(u8g2_font_helvB12_tr);
 		u8g2.setCursor(0,17);
 		u8g2.print(F("VOL: "));
 		u8g2.print(curVolume);
