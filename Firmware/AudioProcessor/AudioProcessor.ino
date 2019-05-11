@@ -4,6 +4,7 @@
 #include "encoder.h"
 #include "display.h"
 #include "TDA7440.h"
+#include "MCP4461.h"
 //#include "i2c.c"
 
 byte curMainScreen = 0;
@@ -29,6 +30,8 @@ void setup() {
 	initAudio(); // When power on then TDA is starting in muted mode, but lets repeat it (mute volume, but unmute speakers)
 	setBass(curBass);
 	setTreble(curTreble);
+	
+	digPot_test();
 
 	do{delay(5);} while(rotaryEncRead(MAIN_ENCODER)==0);
 	curMainScreen=1;	//Volume

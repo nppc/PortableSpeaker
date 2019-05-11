@@ -14,8 +14,9 @@
 // Datasheet says 0x88 but that is the 8 bit address.
 // Wire.h automatically appends the extra (lsb write) bit, 
 // so 0x44 if Wire library is used.
-//#define I2C_ADDR            0b10001000  // 0x88 - no Wire library is used
-#define I2C_ADDR            0x44  // for Wire library
+//#define TDA_I2C_ADDR            0b10001000  // 0x88 - no Wire library is used
+#define TDA_I2C_ADDR            0x44  // for Wire library
+#define MCP_I2C_ADDR            0x2C  // for Wire library
 
 // to identify encoder 
 #define MAIN_ENCODER  1

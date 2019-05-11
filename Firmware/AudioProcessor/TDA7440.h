@@ -44,12 +44,12 @@ SPEAKER: MUTE
 
 void initAudio(){
 	// we will mute the volume stage, but unmute the speaker (out stage)
-	Wire.beginTransmission(I2C_ADDR);
+	Wire.beginTransmission(TDA_I2C_ADDR);
 	Wire.write(VOLUME);
 	Wire.write(VOLUME_MUTE); // direct dB representation (0-40)
 	Wire.endTransmission();  
 	delay(1);
-	Wire.beginTransmission(I2C_ADDR);
+	Wire.beginTransmission(TDA_I2C_ADDR);
 	Wire.write(SPEAKER_RIGHT | AUTO_INC);
 	Wire.write(SPEAKER_UNMUTE); // right
 	Wire.write(SPEAKER_UNMUTE); // left
@@ -61,7 +61,7 @@ void initAudio(){
 void setVolume(int dataP){
 	// 0 - mute
 	byte data = map(dataP,1,48,47,0); // convert 1-48 to 47-0dB
-	Wire.beginTransmission(I2C_ADDR);
+	Wire.beginTransmission(TDA_I2C_ADDR);
 	Wire.write(VOLUME);
 	if(dataP==0){Wire.write(VOLUME_MUTE);}else{Wire.write(data);}
 	Wire.endTransmission(); 
@@ -80,7 +80,7 @@ byte convert_dB2byte(int dB){
 
 
 void setInput(byte data){
-	Wire.beginTransmission(I2C_ADDR);
+	Wire.beginTransmission(TDA_I2C_ADDR);
 	Wire.write(INPUT_SELECT);
 	Wire.write(convert_dB2byte(data));
 	Wire.endTransmission();      
@@ -89,7 +89,7 @@ void setInput(byte data){
 
 //-14 to 14
 void setBass(int data){
-	Wire.beginTransmission(I2C_ADDR);
+	Wire.beginTransmission(TDA_I2C_ADDR);
 	Wire.write(BASS);
 	Wire.write(convert_dB2byte(data));
 	Wire.endTransmission();      
@@ -98,7 +98,7 @@ void setBass(int data){
 
 //-14 to 14
 void setTreble(int data){
-	Wire.beginTransmission(I2C_ADDR);
+	Wire.beginTransmission(TDA_I2C_ADDR);
 	Wire.write(TREBLE);
 	Wire.write(convert_dB2byte(data));
 	Wire.endTransmission();      
