@@ -31,7 +31,7 @@ void setup() {
 	setBass(curBass);
 	setTreble(curTreble);
 	
-	digPot_test();
+	digPot_init();
 
 	do{delay(5);} while(rotaryEncRead(MAIN_ENCODER)==0);
 	curMainScreen=1;	//Volume
@@ -97,6 +97,20 @@ void loop() {
 				if(curTreble>14){curTreble=14;}
 				changeTembreDisplay(curTreble);
 				setTreble(curTreble);
+			}else if(encVal==127){
+				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
+				curMainScreen=4;
+				showHeadphones();
+				changeHeadphonesDisplay(curHeadphones);
+			}		
+			break;
+		case 4: //Headphones
+			if(encVal!=0 && encVal!=127){
+				curHeadphones = curHeadphones + encVal;
+				if(curHeadphones<0){curHeadphones=0;}
+				if(curHeadphones>49){curHeadphones=49;}
+				changeVolumeDisplay(curHeadphones);
+				digPot_setdB(0,(byte)curHeadphones);
 			}else if(encVal==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=1;

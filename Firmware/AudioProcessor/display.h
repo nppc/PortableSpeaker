@@ -4,6 +4,20 @@ void drawNumRight(int vol){
   u8g2.print(vol);
 }
 
+
+//**************** Headphones routines *******************/
+
+// show header and clear the remaining of the screen
+void showHeadphones(){
+	u8g2.firstPage();
+	do {
+		u8g2.setFont(u8g2_font_fub17_tr);
+		u8g2.setCursor(0,17);
+		u8g2.print(F("Headphones"));
+	} while (u8g2.nextPage());
+}
+
+
 //**************** Volume routines *******************/
 
 // show header and clear the remaining of the screen
