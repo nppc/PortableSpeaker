@@ -11,13 +11,14 @@ byte curMainScreen = 0;
 unsigned long defaultScreenTiming;	// show default screen if encoders are inactive for more that 30 sec
 
 void setup() {
-	//I2CInit();
 	Wire.begin();
 	Serial.begin(115200);
 	u8g2.begin();
 	u8g2.setFlipMode(0);
 
 	encoderInit();
+
+	digPot_init();
 
 	// Show message MUTED
 	u8g2.firstPage();
@@ -30,8 +31,6 @@ void setup() {
 	initAudio(); // When power on then TDA is starting in muted mode, but lets repeat it (mute volume, but unmute speakers)
 	setBass(curBass);
 	setTreble(curTreble);
-	
-	digPot_init();
 
 	do{delay(5);} while(rotaryEncRead(MAIN_ENCODER)==0);
 	curMainScreen=1;	//Volume
@@ -101,7 +100,7 @@ void loop() {
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=4;
 				showHeadphones();
-				changeHeadphonesDisplay(curHeadphones);
+				changeVolumeDisplay(curHeadphones);
 			}		
 			break;
 		case 4: //Headphones
@@ -110,7 +109,10 @@ void loop() {
 				if(curHeadphones<0){curHeadphones=0;}
 				if(curHeadphones>49){curHeadphones=49;}
 				changeVolumeDisplay(curHeadphones);
-				digPot_setdB(0,(byte)curHeadphones);
+				delay(2);
+				digPot_setdB(0,49-(byte)curHeadphones);
+				Serial.println(curHeadphones);
+				delay(2);
 			}else if(encVal==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=1;

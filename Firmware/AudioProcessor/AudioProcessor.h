@@ -27,5 +27,5 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 int curVolume = 0;  // in percents 0-100 (0=mute, 1=lowest volume, 100=highest volume)
 int curBass = 0;  // from -14 to +14
 int curTreble = 0;  // from -14 to +14
-int curHeadphones = 0;  // from -14 to +14
+int curHeadphones = 0;  // from 0 to 49
 
