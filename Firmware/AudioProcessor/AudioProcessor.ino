@@ -107,10 +107,10 @@ void loop() {
 			if(encVal!=0 && encVal!=127){
 				curHeadphones = curHeadphones + encVal;
 				if(curHeadphones<0){curHeadphones=0;}
-				if(curHeadphones>49){curHeadphones=49;}
+				if(curHeadphones>50){curHeadphones=50;}
 				changeVolumeDisplay(curHeadphones);
 				delay(2);
-				digPot_setdB(0,49-(byte)curHeadphones);
+				digPot_setdB(0,(byte)curHeadphones);
 				Serial.println(curHeadphones);
 				delay(2);
 			}else if(encVal==127){

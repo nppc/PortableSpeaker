@@ -77,6 +77,7 @@ const uint8_t dBlogTable[] PROGMEM = {
 	2,	//-46dB
 	2,	//-47dB
 	1,	//-48dB
+	0,	//-49dB
 	0,	// MUTE
 	
 };
@@ -116,8 +117,9 @@ uint16_t digPot_readCommand(uint8_t cmd){
 }
 
 //set resistance according to dB value
-// 0 - 49 (49=MUTE?)
+// 0 - 50 (49 does not mute, so for mute (50) we need to disconnect A pin)
 void digPot_setdB(uint8_t pot, uint8_t dBval){
+	dBval = 50 - dBval;	// turn around
 	// find command for selected potentsiometer
 	uint16_t val;
 	uint8_t command;
@@ -136,8 +138,29 @@ void digPot_setdB(uint8_t pot, uint8_t dBval){
 	}
 	// get a wiper position from dB
 	if(dBval==0){val=256;}else{val =  pgm_read_byte_near(dBlogTable + (dBval-1));}
-	//delay(1);
-	digPot_sendCommand(command, val);
+	
+	uint8_t tcon0val = digPot_readCommand(TCON0);	// get current value
+	if(dBval==50){
+		//disconnect A pin (shutdown)
+		if(bitRead(tcon0val,TCON0_R0HW)==1){
+			bitClear(tcon0val, TCON0_R0HW);
+			Wire.beginTransmission(MCP_I2C_ADDR);
+			Wire.write(TCON0);
+			Wire.write(tcon0val);
+			Wire.endTransmission();  
+		}
+	}else{
+		digPot_sendCommand(command, val); // send new position
+		// make sure pin A is connected (not in shutdown)
+		if(bitRead(tcon0val,TCON0_R0HW)==0){
+			bitSet(tcon0val, TCON0_R0HW);
+			Wire.beginTransmission(MCP_I2C_ADDR);
+			Wire.write(TCON0);
+			Wire.write(tcon0val);
+			Wire.endTransmission();  
+		}
+		
+	}
 }
 
 //return the value for a specific wiper

@@ -13,7 +13,7 @@ void showHeadphones(){
 	do {
 		u8g2.setFont(u8g2_font_fub17_tr);
 		u8g2.setCursor(0,17);
-		u8g2.print(F("Headphones"));
+		u8g2.print(F("Headphone"));
 	} while (u8g2.nextPage());
 }
 
