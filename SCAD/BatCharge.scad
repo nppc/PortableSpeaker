@@ -3,9 +3,9 @@ $fn=40;
 
 difference(){
 union(){
-  all_black();
+  //all_black();
   all_transparent();
-  allleds();
+  //allleds();
 }
 //translate([24,0,0])cube([50,30,20],true);
 }
@@ -49,9 +49,9 @@ module all_transparent(){
   chg3_body(0);
   chg4_body(0);
   translate([0,15,0])pwr_body(0);
-  linear_extrude(3)import("C:/src/Tennp/Git/PortableSpeaker/SCAD/Bat.dxf");
-  linear_extrude(3)import("C:/src/Tennp/Git/PortableSpeaker/SCAD/Charging.dxf");
-  translate([0,15,0])linear_extrude(3)import("C:/src/Tennp/Git/PortableSpeaker/SCAD/Power.dxf");
+  linear_extrude(3)inset(0.15)import("C:/src/Tennp/Git/PortableSpeaker/SCAD/Bat.dxf");
+  linear_extrude(3)inset(0.15)import("C:/src/Tennp/Git/PortableSpeaker/SCAD/Charging.dxf");
+  translate([0,15,0])linear_extrude(3)inset(0.15)import("C:/src/Tennp/Git/PortableSpeaker/SCAD/Power.dxf");
 }
 
 module chg1_body(a){
@@ -122,4 +122,18 @@ module r_square(x,y,d){
     translate([x1,-y1,0])circle(d=d);
     translate([-x1,-y1,0])circle(d=d);
   }
+}
+
+
+module inset(val){
+    difference(){
+        square(200,true);
+        minkowski(){
+            difference(){
+                square(300,true);
+                children();
+            }
+            circle(val);
+        }
+    }
 }
