@@ -45,6 +45,21 @@ void volumeBar(byte vol){
   u8g2.print(F("dB"));
 }
 
+void gainBar(byte gain){
+  // input 0-15 (0 - 30dB)
+  const byte wdth = 80; // width of Volume Bar
+  const byte hght = 15; // height of Volume Bar
+  const byte x = 0; // height of Volume Bar
+  const byte y = 30; // height of Volume Bar
+  byte gval = map(gain, 0, 15, 0, wdth-2);
+  u8g2.drawFrame(x,y,wdth,hght);
+  u8g2.drawBox(x+1,y+1,gval,hght-2);
+  u8g2.setFont(u8g2_font_helvB12_tr);
+  u8g2.setCursor(wdth+4, y+hght-2);
+  drawNumRight(gain*2);
+  u8g2.print(F("dB"));
+}
+
 // show only volume control. Assume that header already displayed
 void changeVolumeDisplay(byte vol) {
 	//we updating only part of the screen
@@ -123,3 +138,43 @@ void showDefaultScreen(){
 		u8g2.print(curTreble);
 	} while (u8g2.nextPage());
 }
+
+// show input
+void showInput(byte inp){
+  u8g2.firstPage();
+  do {
+    u8g2.setFont(u8g2_font_fub17_tr);
+    u8g2.setCursor(0,17);
+    u8g2.print(F("INPUT:"));
+    switch(inp){
+      case INPUT_MIC:
+        u8g2.setCursor(35,35);
+        u8g2.print(F("XLR"));
+        break;
+      case INPUT_GUITAR:
+        u8g2.setCursor(20,35);
+        u8g2.print(F("GUITAR"));
+        break;
+      case INPUT_BT:
+        u8g2.setCursor(50,35);
+        u8g2.print(F("BT"));
+        break;
+      case INPUT_MIXER:
+        u8g2.setCursor(20,35);
+        u8g2.print(F("MIXER"));
+        break;
+    }
+  } while (u8g2.nextPage());
+}
+
+// show only volume control. Assume that header already displayed
+void changeGainDisplay(byte gain) {
+  //we updating only part of the screen
+  u8g2.firstPage();
+  u8g2.setBufferCurrTileRow(3);
+  for(byte b=0;b<3;b++){
+    gainBar(gain);
+    u8g2.nextPage();
+  } 
+}
+

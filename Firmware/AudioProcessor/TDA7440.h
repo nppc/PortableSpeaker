@@ -82,7 +82,7 @@ byte convert_dB2byte(int dB){
 void setInput(byte data){
 	Wire.beginTransmission(TDA_I2C_ADDR);
 	Wire.write(INPUT_SELECT);
-	Wire.write(convert_dB2byte(data));
+	Wire.write(data);
 	Wire.endTransmission();      
 	delay(1);
 }
@@ -103,5 +103,14 @@ void setTreble(int data){
 	Wire.write(convert_dB2byte(data));
 	Wire.endTransmission();      
 	delay(1);
+}
+
+//0 to 15
+void setInputGain(byte data){
+  Wire.beginTransmission(TDA_I2C_ADDR);
+  Wire.write(INPUT_GAIN);
+  Wire.write(data);
+  Wire.endTransmission();      
+  delay(1);
 }
 

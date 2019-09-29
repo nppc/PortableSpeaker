@@ -41,8 +41,9 @@ void setup() {
 }
 
 void loop() {
-	char encVal = rotaryEncRead(MAIN_ENCODER);
-	if(encVal!=0){
+	char encValMain = rotaryEncRead(MAIN_ENCODER);
+  char encValInp = rotaryEncRead(INPUT_ENCODER);
+	if(encValMain!=0){
 		defaultScreenTiming = millis();
 	}else if(millis()> defaultScreenTiming + 30000 && curMainScreen!=0){
 		curMainScreen = 0;
@@ -50,11 +51,11 @@ void loop() {
 	}
 	switch (curMainScreen) {
 		case 0: //Default screen
-			if(encVal!=0 && encVal!=127){
+			if(encValMain!=0 && encValMain!=127){
 				curMainScreen=1;
 				showVolume();
 				changeVolumeDisplay(curVolume);
-			}else if(encVal==127){
+			}else if(encValMain==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=2;
 				showBass();
@@ -62,13 +63,13 @@ void loop() {
 			}
 			break;
 		case 1: //Volume
-			if(encVal!=0 && encVal!=127){
-				curVolume = curVolume + encVal;
+			if(encValMain!=0 && encValMain!=127){
+				curVolume = curVolume + encValMain;
 				if(curVolume<0){curVolume=0;}
 				if(curVolume>48){curVolume=48;}
 				changeVolumeDisplay(curVolume);
 				setVolume(curVolume);
-			}else if(encVal==127){
+			}else if(encValMain==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=2;
 				showBass();
@@ -76,13 +77,13 @@ void loop() {
 			}
 			break;
 		case 2: //Bass
-			if(encVal!=0 && encVal!=127){
-				curBass = curBass + encVal;
+			if(encValMain!=0 && encValMain!=127){
+				curBass = curBass + encValMain;
 				if(curBass<-14){curBass=-14;}
 				if(curBass>14){curBass=14;}
 				changeTembreDisplay(curBass);
 				setBass(curBass);
-			}else if(encVal==127){
+			}else if(encValMain==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=3;
 				showTreble();
@@ -90,13 +91,13 @@ void loop() {
 			}		
 			break;
 		case 3: //Treble
-			if(encVal!=0 && encVal!=127){
-				curTreble = curTreble + encVal;
+			if(encValMain!=0 && encValMain!=127){
+				curTreble = curTreble + encValMain;
 				if(curTreble<-14){curTreble=-14;}
 				if(curTreble>14){curTreble=14;}
 				changeTembreDisplay(curTreble);
 				setTreble(curTreble);
-			}else if(encVal==127){
+			}else if(encValMain==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=4;
 				showHeadphones();
@@ -104,8 +105,8 @@ void loop() {
 			}		
 			break;
 		case 4: //Headphones
-			if(encVal!=0 && encVal!=127){
-				curHeadphones = curHeadphones + encVal;
+			if(encValMain!=0 && encValMain!=127){
+				curHeadphones = curHeadphones + encValMain;
 				if(curHeadphones<0){curHeadphones=0;}
 				if(curHeadphones>50){curHeadphones=50;}
 				changeVolumeDisplay(curHeadphones);
@@ -113,7 +114,7 @@ void loop() {
 				digPot_setdB(0,(byte)curHeadphones);
 				Serial.println(curHeadphones);
 				delay(2);
-			}else if(encVal==127){
+			}else if(encValMain==127){
 				waitEncoderReleased(MAIN_ENCODER);  // it adds 1ms delay
 				curMainScreen=1;
 				showVolume();
@@ -121,6 +122,46 @@ void loop() {
 			}		
 			break;
 	}
+  // Check input encoder
+  if(encValInp!=0 && encValInp!=127){
+    // change to next input
+    if(encInputChange==0){
+      switch(curInput){
+        case INPUT_MIC:
+          curInput = (encValInp>0 ? INPUT_GUITAR : INPUT_MIXER);
+          break;
+        case INPUT_GUITAR:
+          curInput = (encValInp>0 ? INPUT_BT : INPUT_MIC);
+          break;
+        case INPUT_BT:
+          curInput = (encValInp>0 ? INPUT_MIXER : INPUT_GUITAR);
+          break;
+        case INPUT_MIXER:
+          curInput = (encValInp>0 ? INPUT_MIC : INPUT_BT);
+          break;
+      }
+      // set input
+      showInput(curInput);
+      setInput(curInput);
+    }else{
+      // change Input Gain
+      int gain = (int)curGain + encValInp;
+      if(gain<0){gain=0;}
+      if(gain>15){gain=15;}
+      curGain = gain;
+      setInputGain(curGain);
+      changeGainDisplay(curGain);
+    }
+  }else if(encValInp==127){
+    waitEncoderReleased(INPUT_ENCODER);  // it adds 1ms delay
+    if(encInputChange==0){
+      encInputChange = 1;
+      changeGainDisplay(curGain);
+    }else{
+      encInputChange = 0;
+      showInput(curInput);
+    }
+  }
 	delay(1);	// just to prevent encoder reading to often (as rotaryEncRead disables interrupts shortly)
 	
 	while (Serial.available() > 0) {
