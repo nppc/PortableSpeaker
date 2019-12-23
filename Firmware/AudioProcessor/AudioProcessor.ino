@@ -1,3 +1,6 @@
+#include <Adafruit_NeoPixel.h>
+
+
 #include <Wire.h>
 #include <U8g2lib.h>
 #include "AudioProcessor.h"
@@ -5,12 +8,17 @@
 #include "display.h"
 #include "TDA7440.h"
 #include "MCP4461.h"
+#include "LED1W.h"
 //#include "i2c.c"
 
 byte curMainScreen = 0;
 unsigned long defaultScreenTiming;	// show default screen if encoders are inactive for more that 30 sec
 
-void setup() {
+void setup() {	
+  pixels.begin();
+  pixels.clear();
+	ledPWR_on();
+  
 	Wire.begin();
 	Serial.begin(115200);
 	u8g2.begin();
@@ -31,6 +39,12 @@ void setup() {
 	initAudio(); // When power on then TDA is starting in muted mode, but lets repeat it (mute volume, but unmute speakers)
 	setBass(curBass);
 	setTreble(curTreble);
+  
+  showInputLed(INPUT_MIC);
+
+  BatCharge(80); // Percents chagred
+  
+  
 
 	do{delay(5);} while(rotaryEncRead(MAIN_ENCODER)==0);
 	curMainScreen=1;	//Volume
@@ -38,6 +52,8 @@ void setup() {
 	changeVolumeDisplay(curVolume);
 	waitEncoderReleased(MAIN_ENCODER); 
 	defaultScreenTiming = millis();
+
+  
 }
 
 void loop() {
@@ -142,7 +158,9 @@ void loop() {
       }
       // set input
       showInput(curInput);
+      showInputLed(curInput);
       setInput(curInput);
+      curMainScreen = 0; // something else to refresh screen later
     }else{
       // change Input Gain
       int gain = (int)curGain + encValInp;
@@ -164,12 +182,6 @@ void loop() {
   }
 	delay(1);	// just to prevent encoder reading to often (as rotaryEncRead disables interrupts shortly)
 	
-	while (Serial.available() > 0) {
-		int subaddr = Serial.parseInt();
-		int data = Serial.parseInt();
-
-		// look for the newline. That's the end of sentence:
-		if (Serial.read() == '\n') {
 			/*Wire.beginTransmission(I2C_ADDR);
 			switch (subaddr) {
 				case INPUT_SELECT: 
@@ -187,11 +199,8 @@ void loop() {
 					Wire.write(SPEAKER_RIGHT | AUTO_INC);
 					Wire.write(dat); // right
 					Wire.write(dat); // left
-			}
-			Wire.endTransmission();      
-			Serial.println();*/
-		}
-	}
+          */
+			
 }
 
 
