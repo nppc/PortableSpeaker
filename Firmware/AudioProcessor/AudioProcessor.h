@@ -1,3 +1,5 @@
+#define DEBUG
+
 // for encoder readings use bitRead for speed.
 // this requires to use AVR original pin numbers
 #define BUTTON0_PIN		4 	// PD4
@@ -29,11 +31,15 @@
 
 U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
+byte curMainScreen = 0;
 int curVolume = 0;  // in percents 0-100 (0=mute, 1=lowest volume, 100=highest volume)
-int curBass = 0;  // from -14 to +14
-int curTreble = 0;  // from -14 to +14
-int curHeadphones = 0;  // from 0 to 50
-byte curInput = INPUT_MIC;
+int8_t curBass;  // from -14 to +14
+int8_t curTreble;  // from -14 to +14
+int curHeadphones;  // from 0 to 50
+byte curInput;
 byte encInputChange = 0; // 0 - change Input channel; 1 - change Inout Gain
-byte curGain=14; // default from datasheet (28dB)
-
+//byte curGain=14; // default from datasheet (28dB)
+byte gainMIC;
+byte gainGUITAR;
+byte gainBT;
+byte gainMIXER;

@@ -140,6 +140,15 @@ void showDefaultScreen(){
 }
 
 // show input
+
+void showInputHeader(void){
+  u8g2.firstPage();
+  do {
+    u8g2.setFont(u8g2_font_fub17_tr);
+    u8g2.setCursor(0,17);
+    u8g2.print(F("INPUT:"));
+  } while (u8g2.nextPage());
+}
 void showInput(byte inp){
   u8g2.firstPage();
   do {
@@ -148,19 +157,19 @@ void showInput(byte inp){
     u8g2.print(F("INPUT:"));
     switch(inp){
       case INPUT_MIC:
-        u8g2.setCursor(35,35);
-        u8g2.print(F("XLR"));
+        u8g2.setCursor(35,50);
+        u8g2.print(F("MIC"));
         break;
       case INPUT_GUITAR:
-        u8g2.setCursor(20,35);
+        u8g2.setCursor(20,50);
         u8g2.print(F("GUITAR"));
         break;
       case INPUT_BT:
-        u8g2.setCursor(50,35);
+        u8g2.setCursor(50,50);
         u8g2.print(F("BT"));
         break;
       case INPUT_MIXER:
-        u8g2.setCursor(20,35);
+        u8g2.setCursor(20,50);
         u8g2.print(F("MIXER"));
         break;
     }

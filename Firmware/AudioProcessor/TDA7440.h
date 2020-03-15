@@ -65,6 +65,10 @@ void setVolume(int dataP){
 	Wire.write(VOLUME);
 	if(dataP==0){Wire.write(VOLUME_MUTE);}else{Wire.write(data);}
 	Wire.endTransmission(); 
+#ifdef DEBUG
+  Serial.print("Volume: ");
+  Serial.println(dataP);
+#endif
 	delay(1);
 }
 
@@ -84,6 +88,10 @@ void setInput(byte data){
 	Wire.write(INPUT_SELECT);
 	Wire.write(data);
 	Wire.endTransmission();      
+#ifdef DEBUG
+  Serial.print("Input: ");
+  Serial.println(data);
+#endif
 	delay(1);
 }
 
@@ -93,6 +101,10 @@ void setBass(int data){
 	Wire.write(BASS);
 	Wire.write(convert_dB2byte(data));
 	Wire.endTransmission();      
+#ifdef DEBUG
+  Serial.print("Bass: ");
+  Serial.println(data);
+#endif
 	delay(1);
 }
 
@@ -102,15 +114,52 @@ void setTreble(int data){
 	Wire.write(TREBLE);
 	Wire.write(convert_dB2byte(data));
 	Wire.endTransmission();      
+#ifdef DEBUG
+  Serial.print("Treble: ");
+  Serial.println(data);
+#endif
 	delay(1);
 }
 
+int getInputGain(byte curInp){
+  switch (curInput) {
+    case INPUT_MIC:
+      return gainMIC;
+      break;
+    case INPUT_GUITAR:
+      return gainGUITAR;
+      break;
+    case INPUT_BT:
+      return gainBT;
+      break;
+    case INPUT_MIXER:
+      return gainMIXER;
+      break;
+  }  
+}
 //0 to 15
-void setInputGain(byte data){
+void setInputGain(byte data, byte curInp){
   Wire.beginTransmission(TDA_I2C_ADDR);
   Wire.write(INPUT_GAIN);
   Wire.write(data);
   Wire.endTransmission();      
+#ifdef DEBUG
+  Serial.print("Input Gain: ");
+  Serial.println(data);
+#endif
   delay(1);
+  switch (curInp) {
+    case INPUT_MIC:
+      gainMIC = data;
+      break;
+    case INPUT_GUITAR:
+      gainGUITAR = data;
+      break;
+    case INPUT_BT:
+      gainBT = data;
+      break;
+    case INPUT_MIXER:
+      gainMIXER = data;
+      break;
+  }  
 }
-
