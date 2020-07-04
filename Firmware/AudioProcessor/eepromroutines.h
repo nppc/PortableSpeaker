@@ -9,6 +9,8 @@
 #define EEPROM_GUITAR_GAIN_ADDR 8
 #define EEPROM_BT_GAIN_ADDR     9
 #define EEPROM_MIXER_GAIN_ADDR  10
+#define EEPROM_MIXERMIC_ADDR    11
+#define EEPROM_MIXERMUSIC_ADDR  12
 
 void setDefaultEEPROM(void){
   EEPROM.update(EEPROM_CUR_INPUT_ADDR, INPUT_MIC);
@@ -18,7 +20,9 @@ void setDefaultEEPROM(void){
   EEPROM.update(EEPROM_MIXER_GAIN_ADDR, 14); // default from datasheet (28dB)
   EEPROM.update(EEPROM_BASS_ADDR, 0); // 
   EEPROM.update(EEPROM_TREBLE_ADDR, 0); // 
-  EEPROM.update(EEPROM_HEADPHONES_ADDR, 20); // 
+  EEPROM.update(EEPROM_HEADPHONES_ADDR, 20); //
+  EEPROM.update(EEPROM_MIXERMIC_ADDR, 25); 
+  EEPROM.update(EEPROM_MIXERMUSIC_ADDR, 25); 
 #ifdef DEBUG
   Serial.println(F("EEPROM initialized."));
 #endif
@@ -38,6 +42,8 @@ void restoreDataEEPROM(void){
   curBass = (int8_t)EEPROM.read(EEPROM_BASS_ADDR);
   curTreble = (int8_t)EEPROM.read(EEPROM_TREBLE_ADDR);
   curHeadphones = EEPROM.read(EEPROM_HEADPHONES_ADDR);
+  gainMIXMIC = EEPROM.read(EEPROM_MIXERMIC_ADDR);
+  gainMIXMUSIC = EEPROM.read(EEPROM_MIXERMUSIC_ADDR);
 #ifdef DEBUG
   Serial.println(F("EEPROM data restored."));
 #endif
@@ -52,6 +58,8 @@ void saveCurDataEEPROM(void){
   EEPROM.update(EEPROM_BASS_ADDR, curBass);
   EEPROM.update(EEPROM_TREBLE_ADDR, curTreble);
   EEPROM.update(EEPROM_HEADPHONES_ADDR, curHeadphones);
+  EEPROM.update(EEPROM_MIXERMIC_ADDR, gainMIXMIC); 
+  EEPROM.update(EEPROM_MIXERMUSIC_ADDR, gainMIXMUSIC); 
 #ifdef DEBUG
   Serial.println(F("EEPROM data saved."));
 #endif

@@ -71,7 +71,6 @@ void changeVolumeDisplay(byte vol) {
 	}	
 }
 
-
 //**************** Tembre routines (bass and treble) *******************/
 
 void tembreBar(int tembre){
@@ -162,7 +161,7 @@ void showInput(byte inp){
         break;
       case INPUT_GUITAR:
         u8g2.setCursor(20,50);
-        u8g2.print(F("GUITAR"));
+        u8g2.print(F("MUSIC"));
         break;
       case INPUT_BT:
         u8g2.setCursor(50,50);
@@ -176,6 +175,54 @@ void showInput(byte inp){
   } while (u8g2.nextPage());
 }
 
+void showMixerHeader(byte inp){
+  u8g2.firstPage();
+  do {
+    u8g2.setFont(u8g2_font_fub17_tr);
+    u8g2.setCursor(0,17);
+    switch(inp){
+      case 1:
+        u8g2.print(F("MIX: ALL"));
+        break;
+      case 2:
+        u8g2.print(F("MIX: MIC"));
+        break;
+      case 3:
+        u8g2.print(F("MIX:MUSIC"));
+        break;
+    }
+  } while (u8g2.nextPage());
+}
+
+/*
+void showMixerInput(byte inp){
+  u8g2.firstPage();
+  do {
+    u8g2.setFont(u8g2_font_fub17_tr);
+    u8g2.setCursor(0,17);
+    u8g2.print(F("INPUT:"));
+    switch(inp){
+      case 0:
+        u8g2.setCursor(15,50);
+        u8g2.print(F("MIXER"));
+        break;
+      case 1:
+        u8g2.setCursor(10,50);
+        u8g2.print(F("MIX: ALL"));
+        break;
+      case 2:
+        u8g2.setCursor(10,50);
+        u8g2.print(F("MIX: MIC"));
+        break;
+      case 3:
+        u8g2.setCursor(0,50);
+        u8g2.print(F("MIX:MUSIC"));
+        break;
+    }
+  } while (u8g2.nextPage());
+}
+*/
+
 // show only volume control. Assume that header already displayed
 void changeGainDisplay(byte gain) {
   //we updating only part of the screen
@@ -186,4 +233,3 @@ void changeGainDisplay(byte gain) {
     u8g2.nextPage();
   } 
 }
-

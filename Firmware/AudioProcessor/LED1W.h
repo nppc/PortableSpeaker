@@ -33,7 +33,7 @@ void showInputLed(byte inp){
         pixels.setPixelColor(9, pixels.Color(0, 100, 0)); //MIC top
         pixels.setPixelColor(1, pixels.Color(0, 100, 0)); //GUITAR bottom
         pixels.setPixelColor(8, pixels.Color(0, 100, 0)); //GUITAR top
-        pixels.setPixelColor(2, pixels.Color(0, 0, 255)); //BT bottom
+        //pixels.setPixelColor(2, pixels.Color(0, 0, 255)); //BT bottom
         break;
     }
   pixels.show(); // This sends the updated pixel color to the hardware.

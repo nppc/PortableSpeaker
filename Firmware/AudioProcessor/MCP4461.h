@@ -94,6 +94,13 @@ void digPot_sendCommand(uint8_t cmd, uint16_t val){
 	Wire.write((uint8_t)val);	// send the rest 8 bits
 	Wire.endTransmission();
 	//delay(1);
+#ifdef DEBUG
+        Serial.print("DigPot Send. cmd: ");
+        Serial.print(cmd);
+        Serial.print(", val: ");
+        Serial.println(val);
+#endif
+
 }
 
 uint16_t digPot_readCommand(uint8_t cmd){
@@ -113,7 +120,13 @@ uint16_t digPot_readCommand(uint8_t cmd){
 		if (i==0) val = val<<8;
 		i++;
 	}
-	return val;
+	#ifdef DEBUG
+    Serial.print("DigPot read: cmd: ");
+    Serial.print(cmd);
+    Serial.print(", val: ");
+    Serial.println(val);
+  #endif
+  return val;
 }
 
 //set resistance according to dB value
@@ -140,6 +153,7 @@ void digPot_setdB(uint8_t pot, uint8_t dBval){
 	if(dBval==0){val=256;}else{val =  pgm_read_byte_near(dBlogTable + (dBval-1));}
 	
 	uint8_t tcon0val = digPot_readCommand(TCON0);	// get current value
+	
 	if(dBval==50){
 		//disconnect A pin (shutdown)
 		if(bitRead(tcon0val,TCON0_R0HW)==1){
@@ -243,7 +257,7 @@ void digPot_init(){
 	tcon0val |= (1<<TCON0_R0HW)+(1<<TCON0_R1HW)+(1<<TCON0_R1B);
 	//bitClear(tcon0val, TCON0_R1A);
 	//bitClear(tcon0val, TCON0_R1W);
-	tcon1val |= (1<<TCON1_R2HW)+(1<<TCON1_R3HW)+(1<<TCON1_R2B)+(1<<TCON1_R3B);
+	tcon1val |= (1<<TCON1_R2HW)+(1<<TCON1_R3HW)+(1<<TCON1_R2W)+(1<<TCON1_R3W)+(1<<TCON1_R2B)+(1<<TCON1_R3B)+(1<<TCON1_R2A)+(1<<TCON1_R3A);
 	//bitClear(tcon1val, TCON0_R2A);
 	//bitClear(tcon1val, TCON0_R2W);
 	//bitClear(tcon1val, TCON0_R3A);
@@ -259,4 +273,7 @@ void digPot_init(){
 	Wire.endTransmission();  
 	delay(1);
 	digPot_setdB(0,curHeadphones); // mute Headphones at the beginning
+  digPot_setdB(3, gainMIXMIC);
+  digPot_setdB(2, gainMIXMUSIC);
+
 }

@@ -37,9 +37,12 @@ int8_t curBass;  // from -14 to +14
 int8_t curTreble;  // from -14 to +14
 int curHeadphones;  // from 0 to 50
 byte curInput;
+byte curMixInput;
 byte encInputChange = 0; // 0 - change Input channel; 1 - change Inout Gain
 //byte curGain=14; // default from datasheet (28dB)
 byte gainMIC;
 byte gainGUITAR;
 byte gainBT;
 byte gainMIXER;
+byte gainMIXMIC;
+byte gainMIXMUSIC;

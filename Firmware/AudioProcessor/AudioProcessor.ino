@@ -10,6 +10,7 @@
 #include "MCP4461.h"
 #include "LED1W.h"
 #include "eepromroutines.h"
+#include "mixer.h"
 //#include "i2c.c"
 
 unsigned long defaultScreenTiming;	// show default screen if encoders are inactive for more that 30 sec
@@ -95,7 +96,8 @@ void loop() {
       break;
     case 1: //Volume
       if (encValMain != 0 && encValMain != 127) {
-        curVolume = curVolume + encValMain;
+       encInputChange = 0; // change to select input...
+       curVolume = curVolume + encValMain;
         if (curVolume < 0) {
           curVolume = 0;
         }
@@ -113,6 +115,7 @@ void loop() {
       break;
     case 2: //Bass
       if (encValMain != 0 && encValMain != 127) {
+        encInputChange = 0; // change to select input...
         curBass = curBass + encValMain;
         if (curBass < -14) {
           curBass = -14;
@@ -131,6 +134,7 @@ void loop() {
       break;
     case 3: //Treble
       if (encValMain != 0 && encValMain != 127) {
+        encInputChange = 0; // change to select input...
         curTreble = curTreble + encValMain;
         if (curTreble < -14) {
           curTreble = -14;
@@ -149,6 +153,7 @@ void loop() {
       break;
     case 4: //Headphones
       if (encValMain != 0 && encValMain != 127) {
+        encInputChange = 0; // change to select input...
         curHeadphones = curHeadphones + encValMain;
         if (curHeadphones < 0) {
           curHeadphones = 0;
@@ -159,6 +164,7 @@ void loop() {
         changeVolumeDisplay(curHeadphones);
         delay(2);
         digPot_setdB(0, (byte)curHeadphones);
+        //digPot_setdB(2, (byte)curHeadphones);
 #ifdef DEBUG
         Serial.print("Headphones: ");
         Serial.println(curHeadphones);
@@ -175,15 +181,17 @@ void loop() {
       if (encValMain != 0) {
         // swith from input to volume regulation if main rotated
         curMainScreen = 1;
+        encInputChange = 0; // change to select input...
         showVolume();
         changeVolumeDisplay(curVolume);
       }
       break;
   }
+  
   // Check input encoder
-  if (encValInp != 0 && encValInp != 127) {
+  if (encValInp != 0 && encValInp != 127) { // If Imput encoder is rotated
     // change to next input
-    if (encInputChange == 0) {
+    if (encInputChange == 0) { // what to change (0 - input, 1 - gain)
       curMainScreen = 9; // Screen for selecting/adjusting inputs
       switch (curInput) {
         case INPUT_MIC:
@@ -206,32 +214,66 @@ void loop() {
       setInputGain(getInputGain(curInput), curInput);
       curMainScreen = 9; // something else to refresh screen later
     } else {
-      // change Input Gain
-      if (curMainScreen != 9) {
+      // refresh screen if no input ingo on it (after changing volume)
+      // change Input Gain for 
+      if(curInput==INPUT_MIXER){
+        if(curMainScreen != 9){
+          curMainScreen = 9; 
+          showMixerHeader(curMixInput);
+        }
+      }else if (curMainScreen != 9) {
         curMainScreen = 9;
-        showInputHeader();
+        showInputHeader();          
       }
-      int gain = (int)getInputGain(curInput) + encValInp;
-      if (gain < 0) {
-        gain = 0;
+      if(curInput!=INPUT_MIXER || (curInput==INPUT_MIXER && curMixInput==1)){
+        int gain = (int)getInputGain(curInput) + encValInp;
+        if (gain < 0) {
+          gain = 0;
+        }
+        if (gain > 15) {
+          gain = 15;
+        }
+        //curGain = gain;
+        setInputGain(gain, curInput);
+        changeGainDisplay(gain);
+      }else{
+        // mixer channels gain adjust
+        int tmpg = (curMixInput==2 ? gainMIXMIC : gainMIXMUSIC);
+        tmpg = tmpg + encValInp;
+        if (tmpg < 0) {
+          tmpg = 0;
+        }
+        if (tmpg > 50) {
+          tmpg = 50;
+        }
+        changeVolumeDisplay((byte)tmpg); // using this routine to show mixer channels gain
+        delay(2);
+        if(curMixInput==2){
+          gainMIXMIC = (byte)tmpg;
+          digPot_setdB(3, gainMIXMIC);
+        }else{
+          gainMIXMUSIC = (byte)tmpg;
+          digPot_setdB(2, gainMIXMUSIC);
+        }
+        delay(2);
       }
-      if (gain > 15) {
-        gain = 15;
-      }
-      //curGain = gain;
-      setInputGain(gain, curInput);
-      changeGainDisplay(gain);
     }
   } else if (encValInp == 127) {
     curMainScreen = 9;
     waitEncoderReleased(INPUT_ENCODER);  // it adds 1ms delay
-    if (encInputChange == 0) {
-      encInputChange = 1;
-      showInputHeader();
-      changeGainDisplay(getInputGain(curInput));
-    } else {
-      encInputChange = 0;
-      showInput(curInput);
+    if(curInput==INPUT_MIXER){
+      // change Mixer inputs
+      changeMixerInputs();
+    }else{
+      // change other inputs
+      if(encInputChange==0){
+        encInputChange = 1;
+        showInputHeader();
+        changeGainDisplay(getInputGain(curInput));
+      }else{
+        encInputChange = 0;
+        showInput(curInput);
+      }
     }
   }
   delay(1);	// just to prevent encoder reading to often (as rotaryEncRead disables interrupts shortly)
